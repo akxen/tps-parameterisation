@@ -1,0 +1,7 @@
+*.pickle
+*.pdf
+*.log
+*.mst
+*.mps
+*.sol
+man/*

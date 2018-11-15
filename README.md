@@ -1,0 +1,4 @@
+# Tradable Performance Standard Parameterisation
+This repository explores techniques that can be used to parameterise an emissions abatement scheme, known as a Tradable Performance Standard (TPS). The scheme works by establishing a sectoral emissions intensity baseline. For each unit of output a firm produces they receive an allocation of emissions permits equal to the baseline. Periodically, firms must surrender permits equal to their total emissions. Note that firms with emissions intensities below the baseline will accrue surplus permits for each unit they produce, while firms with emissions intensities above the baseline will have to purchase additional permits to meet their obligations under the scheme.
+
+This repository contains code describing a mathematical framework that can be used to calibrate the emissions intensity baseline.

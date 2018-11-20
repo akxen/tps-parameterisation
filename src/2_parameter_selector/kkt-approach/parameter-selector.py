@@ -6,7 +6,7 @@
 # 
 # ## Import packages
 
-# In[1]:
+# In[ ]:
 
 
 import os
@@ -28,15 +28,15 @@ np.random.seed(10)
 # ## Paths
 # Paths to relevant data and output directories.
 
-# In[2]:
+# In[ ]:
 
 
 class DirectoryPaths(object):
     "Paths to relevant directories"
     
     def __init__(self):
-        self.data_dir = os.path.join(os.path.curdir, os.path.pardir, os.path.pardir, 'data')
-        self.scenarios_dir = os.path.join(os.path.curdir, os.path.pardir, '1_create_scenarios')
+        self.data_dir = os.path.join(os.path.curdir, os.path.pardir, os.path.pardir, os.path.pardir, 'data')
+        self.scenarios_dir = os.path.join(os.path.curdir, os.path.pardir, os.path.pardir, '1_create_scenarios')
         self.output_dir = os.path.join(os.path.curdir, 'output')
 
 paths = DirectoryPaths()
@@ -45,7 +45,7 @@ paths = DirectoryPaths()
 # ## Model data
 # Import raw model data.
 
-# In[3]:
+# In[ ]:
 
 
 class RawData(object):
@@ -94,7 +94,7 @@ raw_data = RawData()
 # ## Organise model data
 # Format and organise data.
 
-# In[4]:
+# In[ ]:
 
 
 class OrganiseData(object):
@@ -342,7 +342,7 @@ model_data = OrganiseData()
 
 # ## Model
 
-# In[5]:
+# In[ ]:
 
 
 def create_model(use_pu=None, variable_baseline=None, objective_type=None):
@@ -1158,7 +1158,7 @@ def create_model(use_pu=None, variable_baseline=None, objective_type=None):
 
 # Setup solver.
 
-# In[6]:
+# In[ ]:
 
 
 # Setup solver
@@ -1339,7 +1339,7 @@ run_permit_price_target_scenarios()
 
 # Solve model for different emissions intensity baselines.
 
-# In[10]:
+# In[ ]:
 
 
 def run_emissions_intensity_baseline_scenarios():
@@ -1351,8 +1351,7 @@ def run_emissions_intensity_baseline_scenarios():
     opt.options['emphasis mip'] = 1 # Emphasise feasibility
 
     # Solve model for different PHI scenarios
-#     np.linspace(1.1, 0.9, 41)
-    for baseline in np.linspace(0.97, 0.9, 15):
+    for baseline in np.linspace(1.1, 0.9, 41):
         # Dictionary in which to store results
         fixed_baseline_results = dict()
 

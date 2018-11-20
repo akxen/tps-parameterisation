@@ -1,7 +1,8 @@
-*.pickle
 *.pdf
 *.log
 *.mst
 *.mps
 *.sol
 man/*
+src/2_parameter_selector/kkt-approach/output/*.pickle
+src/3_process_results/output/temp/*.pickle

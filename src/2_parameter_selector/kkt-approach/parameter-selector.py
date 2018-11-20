@@ -1339,7 +1339,7 @@ run_permit_price_target_scenarios()
 
 # Solve model for different emissions intensity baselines.
 
-# In[ ]:
+# In[10]:
 
 
 def run_emissions_intensity_baseline_scenarios():
@@ -1351,7 +1351,8 @@ def run_emissions_intensity_baseline_scenarios():
     opt.options['emphasis mip'] = 1 # Emphasise feasibility
 
     # Solve model for different PHI scenarios
-    for baseline in np.linspace(1.1, 0.9, 41):
+#     np.linspace(1.1, 0.9, 41)
+    for baseline in np.linspace(0.97, 0.9, 15):
         # Dictionary in which to store results
         fixed_baseline_results = dict()
 

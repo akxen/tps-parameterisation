@@ -6,7 +6,7 @@
 # 
 # ## Import packages
 
-# In[ ]:
+# In[1]:
 
 
 import os
@@ -28,7 +28,7 @@ np.random.seed(10)
 # ## Paths
 # Paths to relevant data and output directories.
 
-# In[ ]:
+# In[2]:
 
 
 class DirectoryPaths(object):
@@ -45,7 +45,7 @@ paths = DirectoryPaths()
 # ## Model data
 # Import raw model data.
 
-# In[ ]:
+# In[3]:
 
 
 class RawData(object):
@@ -94,7 +94,7 @@ raw_data = RawData()
 # ## Organise model data
 # Format and organise data.
 
-# In[ ]:
+# In[4]:
 
 
 class OrganiseData(object):
@@ -342,7 +342,7 @@ model_data = OrganiseData()
 
 # ## Model
 
-# In[ ]:
+# In[5]:
 
 
 def create_model(use_pu=None, variable_baseline=None, objective_type=None):
@@ -1065,6 +1065,7 @@ def create_model(use_pu=None, variable_baseline=None, objective_type=None):
         model.dummy = Var(bounds=(0, 1))
         model.OBJECTIVE = Objective(expr=model.dummy, sense=minimize)
         
+        
     # Permit price target
     elif objective_type == 'permit_price_target':
         
@@ -1088,7 +1089,8 @@ def create_model(use_pu=None, variable_baseline=None, objective_type=None):
         
         # Objective function
         model.OBJECTIVE = Objective(expr=model.PERMIT_PRICE_TARGET_X_1 + model.PERMIT_PRICE_TARGET_X_2)
-    
+        
+        
     # Weighted RRN price target        
     elif objective_type == 'weighted_rrn_price_target':
         # Weighted RRN price target
@@ -1142,6 +1144,7 @@ def create_model(use_pu=None, variable_baseline=None, objective_type=None):
         # Nodal price objective
         model.OBJECTIVE = Objective(expr=sum(model.SCENARIO[s].RHO * model.SCENARIO[s].D[n] * (model.NODAL_ELECTRICITY_PRICE_X_1[s, n] + model.NODAL_ELECTRICITY_PRICE_X_2[s, n]) for s in model.OMEGA_S for n in model.OMEGA_N))
         
+        
     # Minimise average electricity price  
     elif objective_type == 'minimise_electricity_price':
         model.OBJECTIVE = Objective(expr=model.AVERAGE_ELECTRICITY_PRICE, sense=minimize)
@@ -1158,7 +1161,7 @@ def create_model(use_pu=None, variable_baseline=None, objective_type=None):
 
 # Setup solver.
 
-# In[ ]:
+# In[6]:
 
 
 # Setup solver
@@ -1168,9 +1171,62 @@ solver_io = 'mps'
 opt = SolverFactory(solver, solver_io=solver_io)
 
 
+# Solve model for different emissions intensity baselines.
+
+# In[7]:
+
+
+def run_emissions_intensity_baseline_scenarios():
+    "Run model for different emissions intensity baseline scenarios"
+    
+    # Instantiate model object
+    model = create_model(use_pu=True, variable_baseline=False, objective_type='feasibility')
+    opt.options['mip tolerances absmipgap'] = 1e-6
+    opt.options['emphasis mip'] = 1 # Emphasise feasibility
+
+    # Solve model for different PHI scenarios
+    for baseline in np.linspace(1.1, 0.9, 41):
+        # Dictionary in which to store results
+        fixed_baseline_results = dict()
+
+        # Update baseline
+        print('Emissions intensity baseline: {0} tCO2/MWh'.format(baseline))
+        model.PHI = baseline
+
+        # Model results
+        res = opt.solve(model, keepfiles=False, tee=True, warmstart=True)
+        model.solutions.store_to(res)
+
+        # Place results in DataFrame
+        try:
+            df = pd.DataFrame(res['Solution'][0])
+            fixed_baseline_results = {'baseline': model.PHI.value, 'results': df}
+        except:
+            fixed_baseline_results = {'baseline': model.PHI.value, 'results': 'infeasible'}
+            print('Baseline {0} is infeasible'.format(model.PHI.value))   
+
+        # Try to print results
+        try:
+            print(model.AVERAGE_ELECTRICITY_PRICE.display())
+        except:
+            pass
+
+        try:
+            print(model.tau.display())
+        except:
+            pass
+
+        # Save results
+        filename = 'fixed_baseline_results_phi_{0:.3f}.pickle'.format(model.PHI.value)
+        with open(os.path.join(paths.output_dir, filename), 'wb') as f:
+            pickle.dump(fixed_baseline_results, f)
+            
+run_emissions_intensity_baseline_scenarios()
+
+
 # Identify baseline that targets wholesale electricity price
 
-# In[ ]:
+# In[8]:
 
 
 def run_weighted_rrn_price_target_scenarios():
@@ -1233,66 +1289,9 @@ def run_weighted_rrn_price_target_scenarios():
 run_weighted_rrn_price_target_scenarios()
 
 
-# Minimise difference between nodal prices under policy and BAU target.
-
-# In[ ]:
-
-
-def run_nodal_wholesale_electricity_price_target_scenarios():
-    "Run model for different target wholesale electricity prices"
-    
-    # Run BAU model (very high baseline)
-    model_bau = create_model(use_pu=True, variable_baseline=False, objective_type='feasibility')
-    model_bau.PHI = 1.5
-       
-    # Model results
-    res_bau = opt.solve(model_bau, keepfiles=False, tee=True, warmstart=True)
-    model_bau.solutions.store_to(res_bau)
-    
-    # Instantiate model object
-    model = create_model(use_pu=True, variable_baseline=True, objective_type='nodal_electricity_price_target')
-    opt.options['mip tolerances absmipgap'] = 1e-6
-
-    # Run model for different nodal price markups (need to correct implementation of markup)
-    for nodal_price_markup in [1.1, 1.2, 1.3, 1.4, 0.8]:
-        # Update price target
-        for s in model.OMEGA_S:
-            for n in model.OMEGA_N:
-                model.NODAL_ELECTRICITY_PRICE_TARGET[s, n] = res_bau['Solution'][0]['Variable']['SCENARIO[{0}].lamb[{1}]'.format(s, n)]['Value'] * nodal_price_markup
-
-        # Model results
-        res = opt.solve(model, keepfiles=False, tee=True, warmstart=True)
-        model.solutions.store_to(res)
-
-        # Place results in DataFrame
-        try:
-            df = pd.DataFrame(res['Solution'][0])
-            nodal_price_target_results = {'nodal_price_markup': nodal_price_markup,
-                                          'results': df,
-                                          'PHI_DISCRETE': model.PHI_DISCRETE.expr()}
-        except:
-            nodal_price_target_results = {'nodal_price_markup': nodal_price_markup,
-                                          'results': 'infeasible'}
-            print('Nodal price markup target {0} is infeasible'.format(nodal_price_markup))   
-
-        # Try to print results
-        try:
-            model.PHI_DISCRETE.display()
-            model.tau.display()
-        except:
-            pass
-
-        # Save results
-        filename = 'nodal_electricity_price_target_{0:.3f}.pickle'.format(nodal_price_markup)
-        with open(os.path.join(paths.output_dir, filename), 'wb') as f:
-            pickle.dump(nodal_price_target_results, f)
-          
-run_nodal_wholesale_electricity_price_target_scenarios()
-
-
 # Identify baseline that targets equilibrium permit price
 
-# In[ ]:
+# In[10]:
 
 
 def run_permit_price_target_scenarios():
@@ -1335,57 +1334,4 @@ def run_permit_price_target_scenarios():
             pickle.dump(permit_price_target_results, f)
             
 run_permit_price_target_scenarios()
-
-
-# Solve model for different emissions intensity baselines.
-
-# In[ ]:
-
-
-def run_emissions_intensity_baseline_scenarios():
-    "Run model for different emissions intensity baseline scenarios"
-    
-    # Instantiate model object
-    model = create_model(use_pu=True, variable_baseline=False, objective_type='feasibility')
-    opt.options['mip tolerances absmipgap'] = 1e-6
-    opt.options['emphasis mip'] = 1 # Emphasise feasibility
-
-    # Solve model for different PHI scenarios
-    for baseline in np.linspace(1.1, 0.9, 41):
-        # Dictionary in which to store results
-        fixed_baseline_results = dict()
-
-        # Update baseline
-        print('Emissions intensity baseline: {0} tCO2/MWh'.format(baseline))
-        model.PHI = baseline
-
-        # Model results
-        res = opt.solve(model, keepfiles=False, tee=True, warmstart=True)
-        model.solutions.store_to(res)
-
-        # Place results in DataFrame
-        try:
-            df = pd.DataFrame(res['Solution'][0])
-            fixed_baseline_results = {'baseline': model.PHI.value, 'results': df}
-        except:
-            fixed_baseline_results = {'baseline': model.PHI.value, 'results': 'infeasible'}
-            print('Baseline {0} is infeasible'.format(model.PHI.value))   
-
-        # Try to print results
-        try:
-            print(model.AVERAGE_ELECTRICITY_PRICE.display())
-        except:
-            pass
-
-        try:
-            print(model.tau.display())
-        except:
-            pass
-
-        # Save results
-        filename = 'fixed_baseline_results_phi_{0:.3f}.pickle'.format(model.PHI.value)
-        with open(os.path.join(paths.output_dir, filename), 'wb') as f:
-            pickle.dump(fixed_baseline_results, f)
-            
-run_emissions_intensity_baseline_scenarios()
 

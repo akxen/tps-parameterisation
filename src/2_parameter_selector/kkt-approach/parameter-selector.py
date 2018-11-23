@@ -914,6 +914,9 @@ def create_model(use_pu=None, variable_baseline=None, objective_type=None):
                     + sum(model.K[n, h] * b.p_H[h] for h in model.OMEGA_H) == 0)
         b.EQUALITY_CONSTRAINT_2 = Constraint(model.OMEGA_N, rule=EQUALITY_CONSTRAINT_2_RULE)
 
+        # Linearised complementarity constraints
+        # --------------------------------------
+        # Min power output
         def LIN_COMP_1_1_RULE(b, g):
             return model.P_MIN[g] - b.p[g] <= 0
         b.LIN_COMP_1_1 = Constraint(model.OMEGA_G, rule=LIN_COMP_1_1_RULE)
@@ -930,6 +933,7 @@ def create_model(use_pu=None, variable_baseline=None, objective_type=None):
             return b.mu_1[g] <= (1 - b.GAMMA_1[g]) * model.M_12[g]
         b.LIN_COMP_1_4 = Constraint(model.OMEGA_G, rule=LIN_COMP_1_4_RULE)
 
+        # Max power output
         def LIN_COMP_2_1_RULE(b, g):
             return b.p[g] - model.P_MAX[g] <= 0
         b.LIN_COMP_2_1 = Constraint(model.OMEGA_G, rule=LIN_COMP_2_1_RULE)
@@ -946,6 +950,7 @@ def create_model(use_pu=None, variable_baseline=None, objective_type=None):
             return b.mu_2[g] <= (1 - b.GAMMA_2[g]) * model.M_22[g]
         b.LIN_COMP_2_4 = Constraint(model.OMEGA_G, rule=LIN_COMP_2_4_RULE)
 
+        # Max voltage angle difference between connected nodes
         def LIN_COMP_3_1_RULE(b, n, m):
             return b.theta[n] - b.theta[m] - model.THETA_DELTA <= 0
         b.LIN_COMP_3_1 = Constraint(model.OMEGA_NM, rule=LIN_COMP_3_1_RULE)
@@ -962,6 +967,7 @@ def create_model(use_pu=None, variable_baseline=None, objective_type=None):
             return b.mu_3[n, m] <= (1 - b.GAMMA_3[n, m]) * model.M_32[n, m]
         b.LIN_COMP_3_4 = Constraint(model.OMEGA_NM, rule=LIN_COMP_3_4_RULE)
 
+        # Interconnector flow limits
         def LIN_COMP_4_1_RULE(b, j):
             branches = [ac_interconnector_branches.loc[branch_id, 'BRANCH'] for branch_id in ac_interconnector_branch_ids.loc[j]]
             return sum(model.B[n, m] * (b.theta[n] - b.theta[m]) for n, m in branches) - model.F[j] <= 0
@@ -980,6 +986,7 @@ def create_model(use_pu=None, variable_baseline=None, objective_type=None):
             return b.mu_4[j] <= (1 - b.GAMMA_4[j]) * model.M_42[j]
         b.LIN_COMP_4_4 = Constraint(model.OMEGA_J, rule=LIN_COMP_4_4_RULE)
 
+        # HVDC link flow limits
         def LIN_COMP_5_1_RULE(b, h):
             return model.P_H_MIN[h] - b.p_H[h] <= 0
         b.LIN_COMP_5_1 = Constraint(model.OMEGA_H, rule=LIN_COMP_5_1_RULE)
@@ -1013,6 +1020,7 @@ def create_model(use_pu=None, variable_baseline=None, objective_type=None):
         b.LIN_COMP_6_4 = Constraint(model.OMEGA_H, rule=LIN_COMP_6_4_RULE)
     model.SCENARIO = Block(model.OMEGA_S, rule=SCENARIO_RULE)
 
+    # Permit market complementarity constraints
     def PERMIT_MARKET_1_RULE(model):
         return sum(model.SCENARIO[s].RHO * ((model.E[g] - model.PHI) * model.SCENARIO[s].p[g]) for g in model.OMEGA_G for s in model.OMEGA_S) <= 0
 
@@ -1035,6 +1043,7 @@ def create_model(use_pu=None, variable_baseline=None, objective_type=None):
         return model.tau <= (1 - model.GAMMA_7) * model.M_72
     model.PERMIT_MARKET_4 = Constraint(rule=PERMIT_MARKET_4_RULE)
 
+    # Use appropriate constraint formulations depending on whether emissions intensity baseline is variable or not
     if variable_baseline:
         model.PERMIT_MARKET_1_LIN = Constraint(rule=PERMIT_MARKET_1_LIN_RULE)
         model.PERMIT_MARKET_3_LIN = Constraint(rule=PERMIT_MARKET_3_LIN_RULE)
@@ -1200,9 +1209,9 @@ def run_emissions_intensity_baseline_scenarios():
         # Place results in DataFrame
         try:
             df = pd.DataFrame(res['Solution'][0])
-            fixed_baseline_results = {'baseline': model.PHI.value, 'results': df}
+            fixed_baseline_results = {'FIXED_BASELINE': model.PHI.value, 'results': df}
         except:
-            fixed_baseline_results = {'baseline': model.PHI.value, 'results': 'infeasible'}
+            fixed_baseline_results = {'FIXED_BASELINE': model.PHI.value, 'results': 'infeasible'}
             print('Baseline {0} is infeasible'.format(model.PHI.value))   
 
         # Try to print results
@@ -1261,6 +1270,7 @@ def run_weighted_rrn_price_target_scenarios():
         try:
             df = pd.DataFrame(res['Solution'][0])
             price_target_results = {'WEIGHTED_RRN_PRICE_TARGET': model.WEIGHTED_RRN_PRICE_TARGET.value,
+                                    'WEIGHTED_RRN_PRICE_TARGET_BAU_MULTIPLE': price_multiplier,
                                     'results': df,
                                     'PHI_DISCRETE': model.PHI_DISCRETE.expr()}
         except:

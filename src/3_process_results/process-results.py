@@ -44,7 +44,7 @@ data_dir = os.path.join(os.path.curdir, os.path.pardir, os.path.pardir, 'data')
 scenarios_dir = os.path.join(os.path.curdir, os.path.pardir, '1_create_scenarios', 'output')
 
 # Results directory
-results_dir = os.path.join(os.path.curdir, os.path.pardir, '2_parameter_selector', 'output')
+results_dir = os.path.join(os.path.curdir, os.path.pardir, '2_parameter_selector', 'kkt-approach', 'output')
 
 # Output directory
 output_dir = os.path.join(os.path.curdir, 'output')
@@ -228,14 +228,14 @@ results_processor = results_processor(results_dir=results_dir)
 df_fixed_baseline = results_processor.formatted_results(scenario_name='fixed_baseline')
 
 # Save results
-with open(os.path.join(output_dir, 'temp', 'df_fixed_baseline.pickle'), 'wb') as f:
+with open(os.path.join(output_dir, 'tmp', 'df_fixed_baseline.pickle'), 'wb') as f:
     pickle.dump(df_fixed_baseline, f)
 
 
 # In[6]:
 
 
-with open(os.path.join(output_dir, 'temp', 'df_fixed_baseline.pickle'), 'rb') as f:
+with open(os.path.join(output_dir, 'tmp', 'df_fixed_baseline.pickle'), 'rb') as f:
     df_fixed_baseline = pickle.load(f)
 
 
@@ -272,7 +272,7 @@ def permit_price_vs_baseline(df, category):
 df_tau = permit_price_vs_baseline(df_fixed_baseline, category='FIXED_BASELINE')
 
 
-# In[10]:
+# In[8]:
 
 
 def get_average_prices(df, category):
@@ -340,7 +340,7 @@ def get_average_prices(df, category):
 df_average_prices = get_average_prices(df_fixed_baseline, category='FIXED_BASELINE')
 
 
-# In[11]:
+# In[9]:
 
 
 def get_weighted_rrn_prices(df, category):
@@ -413,7 +413,7 @@ df_weighted_rrn_prices = get_weighted_rrn_prices(df_fixed_baseline, category='FI
 
 # Permit price and average national price as a function of baseline
 
-# In[12]:
+# In[10]:
 
 
 plt.clf()
@@ -427,7 +427,7 @@ plt.show()
 
 # Weighted RRN price and average price as a function of baseline
 
-# In[13]:
+# In[11]:
 
 
 plt.clf()
@@ -435,7 +435,7 @@ plt.scatter(df_average_prices['NATIONAL'].tolist(), df_weighted_rrn_prices.tolis
 plt.show()
 
 
-# In[14]:
+# In[12]:
 
 
 df = df_fixed_baseline.copy()
@@ -443,7 +443,7 @@ df.loc[df['variable_name']=='p'].apply(lambda x: pd.Series({'Value': float(x['Va
                                                             'scenario_index': x['scenario_index']}), axis=1)
 
 
-# In[15]:
+# In[13]:
 
 
 def _get_generator_output(row):
@@ -471,7 +471,7 @@ def _get_generator_output(row):
 df_generator_output = df.loc[df['variable_name']=='p'].apply(_get_generator_output, axis=1)   
 
 
-# In[16]:
+# In[14]:
 
 
 # Energy output from different types of generators
@@ -488,7 +488,7 @@ pd.merge(df_generator_output, df_g[['NEM_REGION', 'FUEL_TYPE', 'FUEL_CAT']], how
 plt.show()
 
 
-# In[17]:
+# In[15]:
 
 
 plt.clf()
@@ -496,7 +496,7 @@ df_emissions.plot(logy=True)
 plt.show()
 
 
-# In[18]:
+# In[16]:
 
 
 def construct_srmc_comparison(df_tau, df_g, fuel_types):
@@ -556,7 +556,7 @@ def construct_srmc_comparison(df_tau, df_g, fuel_types):
 means, errors = construct_srmc_comparison(df_tau, df_g, ['Black coal', 'Brown coal', 'Natural Gas (Pipeline)'])
 
 
-# In[19]:
+# In[17]:
 
 
 plt.clf()
@@ -580,7 +580,7 @@ plt.show()
 
 
 # Results from model used to target weighted Regional Reference Node prices
-df_weighted_rrn_price_target = results_processor.formatted_results(scenario_name='wholesale_electricity_price_target')
+df_weighted_rrn_price_target = results_processor.formatted_results(scenario_name='weighted_rrn_price_target')
 
 # Average electricity prices for different emissions intensity baselines
 df_wrpt_average_prices = get_average_prices(df_weighted_rrn_price_target, category='WEIGTHED_RRN_PRICE_TARGET')
@@ -593,6 +593,12 @@ df_wrpt_weighted_rrn_prices = get_weighted_rrn_prices(df_weighted_rrn_price_targ
 
 # Comparision between price target, weighted prices, and average prices
 df_wrpt_average_prices.loc[(slice('NATIONAL'), slice(None))].reset_index().drop('NEM_REGION', axis=1).set_index('WEIGTHED_RRN_PRICE_TARGET').rename(columns={0: 'average_prices'}).join(df_wrpt_weighted_rrn_prices.to_frame(), how='left')
+
+
+# In[19]:
+
+
+df_weighted_rrn_price_target
 
 
 # Results from model used to target permit prices
@@ -609,7 +615,7 @@ df_permit_price_target.loc[df_permit_price_target['variable_name']=='tau'].apply
 
 # Regional price impacts for different baselines.
 
-# In[21]:
+# In[ ]:
 
 
 plt.clf()

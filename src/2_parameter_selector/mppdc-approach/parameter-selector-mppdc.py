@@ -555,13 +555,13 @@ def create_model(use_pu=None, constraint_mode=None, objective_type=None):
     # Convex Envelopes
     # -------------------
     # Bounds for emissions intensity baseline tCO2/MWh
-    model.PHI_LO = Param(initialize=0.7)
-    model.PHI_UP = Param(initialize=1.5)
+    model.PHI_LO = Param(initialize=0.9)
+    model.PHI_UP = Param(initialize=1.1)
     
     # Permit prices
     # Note: if pu normalisation will scale tau by BASE_POWER
     model.TAU_LO = Param(initialize=0)
-    model.TAU_UP = Param(initialize=1000/model.BASE_POWER)  
+    model.TAU_UP = Param(initialize=50/model.BASE_POWER)  
     
     
     # Mapping for bi-linear and tri-linear terms
@@ -888,8 +888,9 @@ def create_model(use_pu=None, constraint_mode=None, objective_type=None):
     
     elif constraint_mode == 'find_phi_find_tau':
         model.SLACK_1 = Var()
+#          + model.SLACK_1
         model.PERMIT_2 = Constraint(expr=sum(model.SCENARIO[s].RHO * ((model.E[g] * model.SCENARIO[s].p[g]) - model.SCENARIO[s].w_2[g]) for s in model.OMEGA_S for g in model.OMEGA_G) <= 0)
-        model.PERMIT_3 = Constraint(expr=sum(model.SCENARIO[s].RHO * ((model.E[g] * model.SCENARIO[s].w_3[g]) - model.SCENARIO[s].w_4[g]) for s in model.OMEGA_S for g in model.OMEGA_G) + model.SLACK_1  == 0)
+        model.PERMIT_3 = Constraint(expr=sum(model.SCENARIO[s].RHO * ((model.E[g] * model.SCENARIO[s].w_3[g]) - model.SCENARIO[s].w_4[g]) for s in model.OMEGA_S for g in model.OMEGA_G) == 0)
 
 
     # Expressions
@@ -905,6 +906,13 @@ def create_model(use_pu=None, constraint_mode=None, objective_type=None):
 
     # Weighted RRN price
     model.WEIGHTED_RRN_PRICE = Expression(expr=sum(model.SCENARIO[s].RHO * model.SCENARIO[s].ZETA[r] * model.SCENARIO[s].lamb[f_4(r)] for s in model.OMEGA_S for r in model.OMEGA_R))
+    
+    # Total emissions
+    model.TOTAL_EMISSIONS = Expression(expr=sum(model.SCENARIO[s].RHO * model.SCENARIO[s].p[g] * model.E[g] for s in model.OMEGA_S for g in model.OMEGA_G))
+    
+    # System emissions intensity
+    model.EMISSIONS_INTENSITY = Expression(expr=model.TOTAL_EMISSIONS / model.TOTAL_DEMAND)
+    
 
 
     # Objective functions
@@ -949,9 +957,10 @@ def create_model(use_pu=None, constraint_mode=None, objective_type=None):
         model.SLACK_VARIABLE_CONSTRAINT_2 = Constraint(expr=model.SLACK_1_X_2 >= - model.SLACK_1)
         
         # Weighted RRN price targeting objective function with slack variable
-        model.OBJECTIVE = Objective(expr=model.SLACK_1_X_1 + model.SLACK_1_X_2, sense=minimize)
-#         model.WEIGHTED_RRN_PRICE_X_1 + model.WEIGHTED_RRN_PRICE_X_2
-        
+        model.OBJECTIVE = Objective(expr=model.EMISSIONS_INTENSITY, sense=minimize)
+#         model.OBJECTIVE = Objective(expr=model.SLACK_1_X_1 + model.SLACK_1_X_2, sense=minimize)
+# model.EMISSIONS_INTENSITY
+#         model.WEIGHTED_RRN_PRICE_X_1 + model.WEIGHTED_RRN_PRICE_X_2 + 
     elif objective_type == 'minimise_baseline':
         model.OBJECTIVE = Objective(expr=model.phi, sense=minimize)
         

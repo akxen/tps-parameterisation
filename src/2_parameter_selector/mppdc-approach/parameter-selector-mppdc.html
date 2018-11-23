@@ -12383,13 +12383,13 @@ div#notebook {
     <span class="c1"># Convex Envelopes</span>
     <span class="c1"># -------------------</span>
     <span class="c1"># Bounds for emissions intensity baseline tCO2/MWh</span>
-    <span class="n">model</span><span class="o">.</span><span class="n">PHI_LO</span> <span class="o">=</span> <span class="n">Param</span><span class="p">(</span><span class="n">initialize</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
-    <span class="n">model</span><span class="o">.</span><span class="n">PHI_UP</span> <span class="o">=</span> <span class="n">Param</span><span class="p">(</span><span class="n">initialize</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">PHI_LO</span> <span class="o">=</span> <span class="n">Param</span><span class="p">(</span><span class="n">initialize</span><span class="o">=</span><span class="mf">0.9</span><span class="p">)</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">PHI_UP</span> <span class="o">=</span> <span class="n">Param</span><span class="p">(</span><span class="n">initialize</span><span class="o">=</span><span class="mf">1.1</span><span class="p">)</span>
     
     <span class="c1"># Permit prices</span>
     <span class="c1"># Note: if pu normalisation will scale tau by BASE_POWER</span>
     <span class="n">model</span><span class="o">.</span><span class="n">TAU_LO</span> <span class="o">=</span> <span class="n">Param</span><span class="p">(</span><span class="n">initialize</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-    <span class="n">model</span><span class="o">.</span><span class="n">TAU_UP</span> <span class="o">=</span> <span class="n">Param</span><span class="p">(</span><span class="n">initialize</span><span class="o">=</span><span class="mi">1000</span><span class="o">/</span><span class="n">model</span><span class="o">.</span><span class="n">BASE_POWER</span><span class="p">)</span>  
+    <span class="n">model</span><span class="o">.</span><span class="n">TAU_UP</span> <span class="o">=</span> <span class="n">Param</span><span class="p">(</span><span class="n">initialize</span><span class="o">=</span><span class="mi">50</span><span class="o">/</span><span class="n">model</span><span class="o">.</span><span class="n">BASE_POWER</span><span class="p">)</span>  
     
     
     <span class="c1"># Mapping for bi-linear and tri-linear terms</span>
@@ -12716,8 +12716,9 @@ div#notebook {
     
     <span class="k">elif</span> <span class="n">constraint_mode</span> <span class="o">==</span> <span class="s1">&#39;find_phi_find_tau&#39;</span><span class="p">:</span>
         <span class="n">model</span><span class="o">.</span><span class="n">SLACK_1</span> <span class="o">=</span> <span class="n">Var</span><span class="p">()</span>
+<span class="c1">#          + model.SLACK_1</span>
         <span class="n">model</span><span class="o">.</span><span class="n">PERMIT_2</span> <span class="o">=</span> <span class="n">Constraint</span><span class="p">(</span><span class="n">expr</span><span class="o">=</span><span class="nb">sum</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">SCENARIO</span><span class="p">[</span><span class="n">s</span><span class="p">]</span><span class="o">.</span><span class="n">RHO</span> <span class="o">*</span> <span class="p">((</span><span class="n">model</span><span class="o">.</span><span class="n">E</span><span class="p">[</span><span class="n">g</span><span class="p">]</span> <span class="o">*</span> <span class="n">model</span><span class="o">.</span><span class="n">SCENARIO</span><span class="p">[</span><span class="n">s</span><span class="p">]</span><span class="o">.</span><span class="n">p</span><span class="p">[</span><span class="n">g</span><span class="p">])</span> <span class="o">-</span> <span class="n">model</span><span class="o">.</span><span class="n">SCENARIO</span><span class="p">[</span><span class="n">s</span><span class="p">]</span><span class="o">.</span><span class="n">w_2</span><span class="p">[</span><span class="n">g</span><span class="p">])</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">OMEGA_S</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">OMEGA_G</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">)</span>
-        <span class="n">model</span><span class="o">.</span><span class="n">PERMIT_3</span> <span class="o">=</span> <span class="n">Constraint</span><span class="p">(</span><span class="n">expr</span><span class="o">=</span><span class="nb">sum</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">SCENARIO</span><span class="p">[</span><span class="n">s</span><span class="p">]</span><span class="o">.</span><span class="n">RHO</span> <span class="o">*</span> <span class="p">((</span><span class="n">model</span><span class="o">.</span><span class="n">E</span><span class="p">[</span><span class="n">g</span><span class="p">]</span> <span class="o">*</span> <span class="n">model</span><span class="o">.</span><span class="n">SCENARIO</span><span class="p">[</span><span class="n">s</span><span class="p">]</span><span class="o">.</span><span class="n">w_3</span><span class="p">[</span><span class="n">g</span><span class="p">])</span> <span class="o">-</span> <span class="n">model</span><span class="o">.</span><span class="n">SCENARIO</span><span class="p">[</span><span class="n">s</span><span class="p">]</span><span class="o">.</span><span class="n">w_4</span><span class="p">[</span><span class="n">g</span><span class="p">])</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">OMEGA_S</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">OMEGA_G</span><span class="p">)</span> <span class="o">+</span> <span class="n">model</span><span class="o">.</span><span class="n">SLACK_1</span>  <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">PERMIT_3</span> <span class="o">=</span> <span class="n">Constraint</span><span class="p">(</span><span class="n">expr</span><span class="o">=</span><span class="nb">sum</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">SCENARIO</span><span class="p">[</span><span class="n">s</span><span class="p">]</span><span class="o">.</span><span class="n">RHO</span> <span class="o">*</span> <span class="p">((</span><span class="n">model</span><span class="o">.</span><span class="n">E</span><span class="p">[</span><span class="n">g</span><span class="p">]</span> <span class="o">*</span> <span class="n">model</span><span class="o">.</span><span class="n">SCENARIO</span><span class="p">[</span><span class="n">s</span><span class="p">]</span><span class="o">.</span><span class="n">w_3</span><span class="p">[</span><span class="n">g</span><span class="p">])</span> <span class="o">-</span> <span class="n">model</span><span class="o">.</span><span class="n">SCENARIO</span><span class="p">[</span><span class="n">s</span><span class="p">]</span><span class="o">.</span><span class="n">w_4</span><span class="p">[</span><span class="n">g</span><span class="p">])</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">OMEGA_S</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">OMEGA_G</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
 
 
     <span class="c1"># Expressions</span>
@@ -12733,6 +12734,13 @@ div#notebook {
 
     <span class="c1"># Weighted RRN price</span>
     <span class="n">model</span><span class="o">.</span><span class="n">WEIGHTED_RRN_PRICE</span> <span class="o">=</span> <span class="n">Expression</span><span class="p">(</span><span class="n">expr</span><span class="o">=</span><span class="nb">sum</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">SCENARIO</span><span class="p">[</span><span class="n">s</span><span class="p">]</span><span class="o">.</span><span class="n">RHO</span> <span class="o">*</span> <span class="n">model</span><span class="o">.</span><span class="n">SCENARIO</span><span class="p">[</span><span class="n">s</span><span class="p">]</span><span class="o">.</span><span class="n">ZETA</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">*</span> <span class="n">model</span><span class="o">.</span><span class="n">SCENARIO</span><span class="p">[</span><span class="n">s</span><span class="p">]</span><span class="o">.</span><span class="n">lamb</span><span class="p">[</span><span class="n">f_4</span><span class="p">(</span><span class="n">r</span><span class="p">)]</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">OMEGA_S</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">OMEGA_R</span><span class="p">))</span>
+    
+    <span class="c1"># Total emissions</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">TOTAL_EMISSIONS</span> <span class="o">=</span> <span class="n">Expression</span><span class="p">(</span><span class="n">expr</span><span class="o">=</span><span class="nb">sum</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">SCENARIO</span><span class="p">[</span><span class="n">s</span><span class="p">]</span><span class="o">.</span><span class="n">RHO</span> <span class="o">*</span> <span class="n">model</span><span class="o">.</span><span class="n">SCENARIO</span><span class="p">[</span><span class="n">s</span><span class="p">]</span><span class="o">.</span><span class="n">p</span><span class="p">[</span><span class="n">g</span><span class="p">]</span> <span class="o">*</span> <span class="n">model</span><span class="o">.</span><span class="n">E</span><span class="p">[</span><span class="n">g</span><span class="p">]</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">OMEGA_S</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">OMEGA_G</span><span class="p">))</span>
+    
+    <span class="c1"># System emissions intensity</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">EMISSIONS_INTENSITY</span> <span class="o">=</span> <span class="n">Expression</span><span class="p">(</span><span class="n">expr</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">TOTAL_EMISSIONS</span> <span class="o">/</span> <span class="n">model</span><span class="o">.</span><span class="n">TOTAL_DEMAND</span><span class="p">)</span>
+    
 
 
     <span class="c1"># Objective functions</span>
@@ -12777,9 +12785,10 @@ div#notebook {
         <span class="n">model</span><span class="o">.</span><span class="n">SLACK_VARIABLE_CONSTRAINT_2</span> <span class="o">=</span> <span class="n">Constraint</span><span class="p">(</span><span class="n">expr</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">SLACK_1_X_2</span> <span class="o">&gt;=</span> <span class="o">-</span> <span class="n">model</span><span class="o">.</span><span class="n">SLACK_1</span><span class="p">)</span>
         
         <span class="c1"># Weighted RRN price targeting objective function with slack variable</span>
-        <span class="n">model</span><span class="o">.</span><span class="n">OBJECTIVE</span> <span class="o">=</span> <span class="n">Objective</span><span class="p">(</span><span class="n">expr</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">SLACK_1_X_1</span> <span class="o">+</span> <span class="n">model</span><span class="o">.</span><span class="n">SLACK_1_X_2</span><span class="p">,</span> <span class="n">sense</span><span class="o">=</span><span class="n">minimize</span><span class="p">)</span>
-<span class="c1">#         model.WEIGHTED_RRN_PRICE_X_1 + model.WEIGHTED_RRN_PRICE_X_2</span>
-        
+        <span class="n">model</span><span class="o">.</span><span class="n">OBJECTIVE</span> <span class="o">=</span> <span class="n">Objective</span><span class="p">(</span><span class="n">expr</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">EMISSIONS_INTENSITY</span><span class="p">,</span> <span class="n">sense</span><span class="o">=</span><span class="n">minimize</span><span class="p">)</span>
+<span class="c1">#         model.OBJECTIVE = Objective(expr=model.SLACK_1_X_1 + model.SLACK_1_X_2, sense=minimize)</span>
+<span class="c1"># model.EMISSIONS_INTENSITY</span>
+<span class="c1">#         model.WEIGHTED_RRN_PRICE_X_1 + model.WEIGHTED_RRN_PRICE_X_2 + </span>
     <span class="k">elif</span> <span class="n">objective_type</span> <span class="o">==</span> <span class="s1">&#39;minimise_baseline&#39;</span><span class="p">:</span>
         <span class="n">model</span><span class="o">.</span><span class="n">OBJECTIVE</span> <span class="o">=</span> <span class="n">Objective</span><span class="p">(</span><span class="n">expr</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">phi</span><span class="p">,</span> <span class="n">sense</span><span class="o">=</span><span class="n">minimize</span><span class="p">)</span>
         
@@ -12880,10 +12889,10 @@ div#notebook {
 <pre>Flow directions conform with regional flow limit directions: True
 Flow directions conform with regional flow limit directions: True
 Flow directions conform with regional flow limit directions: True
-Solver script file=C:\Users\eee\Desktop\git\tps-parameterisation\src\2_parameter_selector\mppdc-approach\tmpadrf9imz.cplex.script
-Solver log file: &#39;C:\Users\eee\Desktop\git\tps-parameterisation\src\2_parameter_selector\mppdc-approach\tmpdzywpg0b.cplex.log&#39;
-Solver solution file: &#39;C:\Users\eee\Desktop\git\tps-parameterisation\src\2_parameter_selector\mppdc-approach\tmps_ck1e99.cplex.sol&#39;
-Solver problem files: (&#39;C:\\Users\\eee\\Desktop\\git\\tps-parameterisation\\src\\2_parameter_selector\\mppdc-approach\\tmpzgddkvrs.pyomo.mps&#39;,)
+Solver script file=C:\Users\eee\Desktop\git\tps-parameterisation\src\2_parameter_selector\mppdc-approach\tmpmr57fqt0.cplex.script
+Solver log file: &#39;C:\Users\eee\Desktop\git\tps-parameterisation\src\2_parameter_selector\mppdc-approach\tmpj760uxe0.cplex.log&#39;
+Solver solution file: &#39;C:\Users\eee\Desktop\git\tps-parameterisation\src\2_parameter_selector\mppdc-approach\tmpsdsxt1fw.cplex.sol&#39;
+Solver problem files: (&#39;C:\\Users\\eee\\Desktop\\git\\tps-parameterisation\\src\\2_parameter_selector\\mppdc-approach\\tmp34x_84hr.pyomo.mps&#39;,)
 
 Welcome to IBM(R) ILOG(R) CPLEX(R) Interactive Optimizer 12.7.1.0
   with Simplex, Mixed Integer &amp; Barrier Optimizers
@@ -12895,79 +12904,69 @@ Type &#39;help&#39; followed by a command name for more
 information on commands.
 
 CPLEX&gt; Logfile &#39;cplex.log&#39; closed.
-Logfile &#39;C:\Users\eee\Desktop\git\tps-parameterisation\src\2_parameter_selector\mppdc-approach\tmpdzywpg0b.cplex.log&#39; open.
+Logfile &#39;C:\Users\eee\Desktop\git\tps-parameterisation\src\2_parameter_selector\mppdc-approach\tmpj760uxe0.cplex.log&#39; open.
 CPLEX&gt; Specified objective sense: MINIMIZE
 Selected objective  name:  x11967
 Selected RHS        name:  RHS
 Selected bound      name:  BOUND
-Problem &#39;C:\Users\eee\Desktop\git\tps-parameterisation\src\2_parameter_selector\mppdc-approach\tmpzgddkvrs.pyomo.mps&#39; read.
-Read time = 0.03 sec. (5.91 ticks)
-CPLEX&gt; Problem name         : C:\Users\eee\Desktop\git\tps-parameterisation\src\2_parameter_selector\mppdc-approach\tmpzgddkvrs.pyomo.mps
+Problem &#39;C:\Users\eee\Desktop\git\tps-parameterisation\src\2_parameter_selector\mppdc-approach\tmp34x_84hr.pyomo.mps&#39; read.
+Read time = 0.03 sec. (6.02 ticks)
+CPLEX&gt; Problem name         : C:\Users\eee\Desktop\git\tps-parameterisation\src\2_parameter_selector\mppdc-approach\tmp34x_84hr.pyomo.mps
 Objective sense      : Minimize
 Variables            :   10146  [Nneg: 4,  Free: 10142]
-Objective nonzeros   :       2
+Objective nonzeros   :     268
 Linear constraints   :   20115  [Less: 10509,  Greater: 5677,  Equal: 3929]
-  Nonzeros           :   61111
+  Nonzeros           :   61110
   RHS nonzeros       :    9389
 
 Variables            : Min LB: 0.0000000        Max UB: all infinite   
-Objective nonzeros   : Min   : 1.000000         Max   : 1.000000       
+Objective nonzeros   : Min   : 0.0004625854     Max   : 0.005576829    
 Linear constraints   :
   Nonzeros           : Min   : 0.0001685220     Max   : 83215.16       
-  RHS nonzeros       : Min   : 0.0001685220     Max   : 223.2000       
+  RHS nonzeros       : Min   : 0.0001685220     Max   : 16.00000       
 CPLEX&gt; CPXPARAM_Read_APIEncoding                        &#34;UTF-8&#34;
 Parallel mode: deterministic, using up to 4 threads for concurrent optimization.
 Tried aggregator 1 time.
-LP Presolve eliminated 10807 rows and 1738 columns.
+LP Presolve eliminated 10809 rows and 1741 columns.
 Aggregator did 2390 substitutions.
-Reduced LP has 6918 rows, 6018 columns, and 33125 nonzeros.
-Presolve time = 0.03 sec. (36.41 ticks)
+Reduced LP has 6916 rows, 6015 columns, and 33120 nonzeros.
+Presolve time = 0.03 sec. (36.39 ticks)
 Initializing dual steep norms . . .
 
 Iteration log . . .
-Iteration:     1   Dual objective     =             0.000000
+Iteration:     1   Dual objective     =             1.200529
 Perturbation started.
-Iteration:   101   Dual objective     =             0.000000
-Iteration:   235   Dual objective     =             0.223308
-Iteration:   443   Dual objective     =             0.223553
-Iteration:   630   Dual objective     =             0.223855
-Iteration:   771   Dual objective     =             0.224071
-Iteration:   944   Dual objective     =             0.224407
-Iteration:  1144   Dual objective     =             0.224709
-Iteration:  1301   Dual objective     =             0.224826
-Iteration:  1421   Dual objective     =             0.224851
-Iteration:  1483   Dual objective     =             0.224888
-Iteration:  1551   Dual objective     =             0.224923
-Iteration:  1637   Dual objective     =             0.224944
-Iteration:  1755   Dual objective     =             0.225257
-Iteration:  1817   Dual objective     =             0.225275
-Iteration:  1879   Dual objective     =             0.225313
-Iteration:  1961   Dual objective     =             0.225357
-Iteration:  2059   Dual objective     =             0.225412
-Iteration:  2123   Dual objective     =             0.225464
-Iteration:  2193   Dual objective     =             0.225563
-Iteration:  2291   Dual objective     =             0.225706
-Iteration:  2392   Dual objective     =             0.225917
-Iteration:  2506   Dual objective     =             0.226187
-Iteration:  2624   Dual objective     =             0.226850
-Iteration:  2735   Dual objective     =           132.157054
-Iteration:  2851   Dual objective     =           261.815819
-Iteration:  2973   Dual objective     =           478.760488
-Iteration:  3103   Dual objective     =           500.214992
-Iteration:  3227   Dual objective     =           508.574435
-Iteration:  3336   Dual objective     =           518.128259
+Iteration:   101   Dual objective     =             1.200529
+Iteration:   354   Dual objective     =             1.423784
+Iteration:   592   Dual objective     =             1.442352
+Iteration:   775   Dual objective     =             1.499574
+Iteration:   918   Dual objective     =             1.565631
+Iteration:  1046   Dual objective     =             1.585892
+Iteration:  1144   Dual objective     =             1.612657
+Iteration:  1285   Dual objective     =             1.627073
+Iteration:  1423   Dual objective     =             1.627190
+Iteration:  1552   Dual objective     =             1.642250
+Iteration:  1659   Dual objective     =             1.645017
+Iteration:  1755   Dual objective     =             1.647322
+Iteration:  1873   Dual objective     =             1.647333
+Iteration:  1942   Dual objective     =             1.647339
+Iteration:  2015   Dual objective     =             1.647349
+Iteration:  2106   Dual objective     =             1.647403
+Iteration:  2191   Dual objective     =             1.647637
 Removing perturbation.
 Reinitializing dual norms . . .
 
 Dual simplex solved model.
 
 
-Dual simplex - Optimal:  Objective = 5.1802410684e+002
-Solution time =    1.11 sec.  Iterations = 3359 (0)
-Deterministic time = 875.99 ticks  (789.18 ticks/sec)
+Dual simplex - Infeasible:  Objective = 1.4225004989e+000
+Solution time =    0.47 sec.  Iterations = 2261 (0)
+Infeasible variable = slack c_u_x14271_
+Deterministic time = 394.62 ticks  (841.41 ticks/sec)
 
-CPLEX&gt; Solution written to file &#39;C:\Users\eee\Desktop\git\tps-parameterisation\src\2_parameter_selector\mppdc-approach\tmps_ck1e99.cplex.sol&#39;.
-CPLEX&gt; </pre>
+CPLEX&gt; Solution written to file &#39;C:\Users\eee\Desktop\git\tps-parameterisation\src\2_parameter_selector\mppdc-approach\tmpsdsxt1fw.cplex.sol&#39;.
+CPLEX&gt; Baseline None is infeasible
+</pre>
 </div>
 </div>
 
@@ -12994,655 +12993,19 @@ CPLEX&gt; </pre>
 
 <div class="output_area">
 
-<div class="prompt output_prompt">Out[8]:</div>
+<div class="prompt"></div>
 
 
+<div class="output_subarea output_text output_error">
+<pre>
+<span class="ansi-red-intense-fg ansi-bold">---------------------------------------------------------------------------</span>
+<span class="ansi-red-intense-fg ansi-bold">NameError</span>                                 Traceback (most recent call last)
+<span class="ansi-green-intense-fg ansi-bold">&lt;ipython-input-8-5b3e2fd1d94c&gt;</span> in <span class="ansi-cyan-fg">&lt;module&gt;</span><span class="ansi-blue-intense-fg ansi-bold">()</span>
+<span class="ansi-green-fg">      1</span> <span class="ansi-red-intense-fg ansi-bold"># res</span>
+<span class="ansi-green-intense-fg ansi-bold">----&gt; 2</span><span class="ansi-yellow-intense-fg ansi-bold"> </span>df
 
-<div class="output_html rendered_html output_subarea output_execute_result">
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>Gap</th>
-      <th>Status</th>
-      <th>Message</th>
-      <th>Problem</th>
-      <th>Objective</th>
-      <th>Variable</th>
-      <th>Constraint</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>OBJECTIVE</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>{'Value': 518.0241068429258}</td>
-      <td>NaN</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>SCENARIO[1].lamb[100]</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': -0.005856695575913345}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>SCENARIO[1].lamb[101]</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': -1.2497055136890547}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>SCENARIO[1].lamb[102]</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': -1.2497055136890547}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>SCENARIO[1].lamb[103]</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': -0.005856695575914646}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>SCENARIO[1].lamb[104]</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': -0.005856695575906004}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>SCENARIO[1].lamb[105]</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': -0.0058566955759154675}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>SCENARIO[1].lamb[106]</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': -0.005856695575927527}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>SCENARIO[1].lamb[107]</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': -1.2497055136890864}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>SCENARIO[1].lamb[108]</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': -0.005856695575912514}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>SCENARIO[1].lamb[109]</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': -0.005856695575914012}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>SCENARIO[1].lamb[10]</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': -1.2497055136892836}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>SCENARIO[1].lamb[110]</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': -0.005856695575913094}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>SCENARIO[1].lamb[111]</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': -0.005856695575914093}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>SCENARIO[1].lamb[112]</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': -0.0058566955759140815}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>SCENARIO[1].lamb[113]</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': -0.0058566955759154675}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>SCENARIO[1].lamb[114]</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': -0.005856695575914069}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>SCENARIO[1].lamb[115]</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': -0.0058566955759140815}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>SCENARIO[1].lamb[116]</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': -0.005856695575906003}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>SCENARIO[1].lamb[117]</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': -0.005856695575913187}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>SCENARIO[1].lamb[118]</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': 0.04925325318268303}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>SCENARIO[1].lamb[119]</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': 0.04925325318268353}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>SCENARIO[1].lamb[11]</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': -1.2497055136891935}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>SCENARIO[1].lamb[120]</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': 0.04925325318268324}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>SCENARIO[1].lamb[121]</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': -1.249705513689118}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>SCENARIO[1].lamb[122]</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': -1.2497055136890565}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>SCENARIO[1].lamb[123]</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': -1.2497055136891406}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>SCENARIO[1].lamb[124]</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': -1.2497055136891313}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>SCENARIO[1].lamb[125]</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': -1.249705513689094}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>SCENARIO[1].lamb[126]</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': -1.2497055136891435}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>...</th>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-    </tr>
-    <tr>
-      <th>SCENARIO[2].w_4[TORRB4]</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': 14.000000000000002}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>SCENARIO[2].w_4[TVCC201]</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': 14.560000000000002}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>SCENARIO[2].w_4[TVPP104]</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': 4.06}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>SCENARIO[2].w_4[URANQ11]</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': 11.62}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>SCENARIO[2].w_4[URANQ12]</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': 11.62}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>SCENARIO[2].w_4[URANQ13]</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': 11.62}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>SCENARIO[2].w_4[URANQ14]</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': 11.62}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>SCENARIO[2].w_4[VP5]</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': 46.2}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>SCENARIO[2].w_4[VP6]</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': 46.2}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>SCENARIO[2].w_4[VPGS1]</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': 3.5000000000000004}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>SCENARIO[2].w_4[VPGS2]</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': 3.5000000000000004}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>SCENARIO[2].w_4[VPGS3]</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': 3.5000000000000004}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>SCENARIO[2].w_4[VPGS4]</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': 3.5000000000000004}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>SCENARIO[2].w_4[VPGS5]</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': 3.5000000000000004}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>SCENARIO[2].w_4[VPGS6]</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': 3.5000000000000004}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>SCENARIO[2].w_4[YABULU2]</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': 5.739999999999999}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>SCENARIO[2].w_4[YABULU]</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': 11.200000000000001}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>SCENARIO[2].w_4[YARWUN_1]</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': 10.780000000000001}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>SCENARIO[2].w_4[YWPS1]</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': 25.2}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>SCENARIO[2].w_4[YWPS2]</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': 25.2}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>SCENARIO[2].w_4[YWPS3]</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': 26.6}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>SCENARIO[2].w_4[YWPS4]</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': 26.6}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>SLACK_1</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': 518.0241068429258}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>SLACK_1_X_1</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': 518.0241068429258}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>SLACK_1_X_2</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': 0.0}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>WEIGHTED_RRN_PRICE_X_1</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': 0.0}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>WEIGHTED_RRN_PRICE_X_2</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': 0.8200765064377722}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>phi</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': 1.0733333333333333}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>tau</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': 8.350917270313747}</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>w_1</th>
-      <td>0.0</td>
-      <td>optimal</td>
-      <td>None</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>{'Value': 8.259709238803953}</td>
-      <td>NaN</td>
-    </tr>
-  </tbody>
-</table>
-<p>10147 rows × 7 columns</p>
+<span class="ansi-red-intense-fg ansi-bold">NameError</span>: name &#39;df&#39; is not defined</pre>
 </div>
-</div>
-
 </div>
 
 </div>

@@ -4,7 +4,6 @@
 *.mps
 *.sol
 *.script
-*.txt
 man/*
 src/2_parameter_selector/kkt-approach/output/*.pickle
 src/3_process_results/output/tmp/*.pickle

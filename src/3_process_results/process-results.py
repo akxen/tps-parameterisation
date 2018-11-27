@@ -9,12 +9,6 @@
 # * Regional price - map of australia - overlaid with blue or red dots - indicates magnitude of price change - subfigures - for different price targets
 # * X - Change in output from different types of generators - gas increase - coal decrease - for different baselines - emissions overlaid
 
-# To fix:
-# * Change 'baseline' to 'FIXED_BASELINE' in results dict
-# * Change 'wholesale_price_target' to 'weighted_rrn_price_target'
-# * Add BAU multiple to weighted_rrn_price_target in results dataframe
-# * Add permit price being targeted to results dict for permit price targeting model
-
 # # Process Results
 
 # In[1]:
@@ -118,10 +112,17 @@ class results_processor(object):
                 # Price targeting scenarios
                 if 'WEIGHTED_RRN_PRICE_TARGET' in result.keys():
                     df['WEIGTHED_RRN_PRICE_TARGET'] = result['WEIGHTED_RRN_PRICE_TARGET']
+                
+                if 'WEIGHTED_RRN_PRICE_TARGET_BAU_MULTIPLE' in result.keys():
+                    df['WEIGHTED_RRN_PRICE_TARGET_BAU_MULTIPLE'] = result['WEIGHTED_RRN_PRICE_TARGET_BAU_MULTIPLE']
 
                 # Fixed baseline scenarios
-                if 'baseline' in result.keys():
-                    df['FIXED_BASELINE'] = result['baseline']
+                if 'FIXED_BASELINE' in result.keys():
+                    df['FIXED_BASELINE'] = result['FIXED_BASELINE']
+                    
+                # Permit price targeting scenario
+                if 'PERMIT_PRICE_TARGET' in result.keys():
+                    df['PERMIT_PRICE_TARGET'] = result['PERMIT_PRICE_TARGET']
 
                 # Collate results
                 collated_results.append(df)
@@ -222,22 +223,59 @@ class results_processor(object):
 results_processor = results_processor(results_dir=results_dir)
 
 
+# ## Process results from different scenarios
+
 # In[5]:
 
 
+# Fixed emissions intensity baseline
+# ----------------------------------
 df_fixed_baseline = results_processor.formatted_results(scenario_name='fixed_baseline')
 
-# Save results
+# Save DataFrame
 with open(os.path.join(output_dir, 'tmp', 'df_fixed_baseline.pickle'), 'wb') as f:
     pickle.dump(df_fixed_baseline, f)
 
 
+# Weighted Regional Reference Node (RRN) price targeting
+# ------------------------------------------------------
+df_weighted_rrn_price_target = results_processor.formatted_results(scenario_name='weighted_rrn_price_target')
+
+# Save DataFrame
+with open(os.path.join(output_dir, 'tmp', 'df_weighted_rrn_price_target.pickle'), 'wb') as f:
+    pickle.dump(df_weighted_rrn_price_target, f)
+    
+
+# Permit price targeting scenarios
+# --------------------------------
+df_permit_price_target = results_processor.formatted_results(scenario_name='permit_price_target')
+
+# Save DataFrame
+with open(os.path.join(output_dir, 'tmp', 'df_permit_price_target.pickle'), 'wb') as f:
+    pickle.dump(df_permit_price_target, f)
+
+
+# Load data if processed previously (save time).
+
 # In[6]:
 
 
+# Fixed baseline scenarios
 with open(os.path.join(output_dir, 'tmp', 'df_fixed_baseline.pickle'), 'rb') as f:
     df_fixed_baseline = pickle.load(f)
+    
+# Permit price targeting scenarios
+with open(os.path.join(output_dir, 'tmp', 'df_permit_price_target.pickle'), 'rb') as f:
+    df_permit_price_target = pickle.load(f)
 
+# Weighted Regional Reference Node (RRN) price targeting scenarios
+with open(os.path.join(output_dir, 'tmp', 'df_weighted_rrn_price_target.pickle'), 'rb') as f:
+    df_weighted_rrn_price_target = pickle.load(f)
+
+
+# ## Exploratory plots
+# ### Fixed emissions intensity baseline scenarios
+# #### Permit price as a function of the emissions intensity baseline
 
 # In[7]:
 
@@ -271,6 +309,12 @@ def permit_price_vs_baseline(df, category):
 # Permit price as a function of emissisons intensity baseline
 df_tau = permit_price_vs_baseline(df_fixed_baseline, category='FIXED_BASELINE')
 
+plt.clf()
+df_tau.plot()
+plt.show()
+
+
+# #### Average wholesale price as a function of the emissions intensity baseline
 
 # In[8]:
 
@@ -339,8 +383,25 @@ def get_average_prices(df, category):
 # Average electricity prices for different emissions intensity baselines
 df_average_prices = get_average_prices(df_fixed_baseline, category='FIXED_BASELINE')
 
+plt.clf()
+df_average_prices.loc['NATIONAL'].plot()
+plt.show()
+
+
+# #### Regional price impacts for different baselines
 
 # In[9]:
+
+
+plt.clf()
+# Average prices in each NEM region, including aggregate national values
+df_average_prices.reset_index().pivot(index='FIXED_BASELINE', columns='NEM_REGION', values=0).plot()
+plt.show()
+
+
+# #### Weighted Regional Reference Node (RRN) prices
+
+# In[10]:
 
 
 def get_weighted_rrn_prices(df, category):
@@ -408,24 +469,13 @@ def get_weighted_rrn_prices(df, category):
     df_o = df_o.groupby(category)['weighted_prices'].sum()
     
     return df_o
+
+# Weighted RRN prices for different fixed baseline scenarios
 df_weighted_rrn_prices = get_weighted_rrn_prices(df_fixed_baseline, category='FIXED_BASELINE')
 
 
-# Permit price and average national price as a function of baseline
-
-# In[10]:
-
-
-plt.clf()
-
-fig, ax1 = plt.subplots()
-ax2 = ax1.twinx()
-df_tau.plot(ax=ax1)
-ax = df_average_prices.loc['NATIONAL'].plot(ax=ax2)
-plt.show()
-
-
-# Weighted RRN price and average price as a function of baseline
+# #### Weighted RRN price and average price as a function of baseline
+# Comparison to see how well weighted RRN prices capture average wholesale price outcomes.
 
 # In[11]:
 
@@ -435,15 +485,9 @@ plt.scatter(df_average_prices['NATIONAL'].tolist(), df_weighted_rrn_prices.tolis
 plt.show()
 
 
+# #### Generator output by technology type
+
 # In[12]:
-
-
-df = df_fixed_baseline.copy()
-df.loc[df['variable_name']=='p'].apply(lambda x: pd.Series({'Value': float(x['Variable']['Value']),
-                                                            'scenario_index': x['scenario_index']}), axis=1)
-
-
-# In[13]:
 
 
 def _get_generator_output(row):
@@ -468,18 +512,16 @@ def _get_generator_output(row):
                       'FIXED_BASELINE': row['FIXED_BASELINE'],
                       'emissions': emissions})
 
-df_generator_output = df.loc[df['variable_name']=='p'].apply(_get_generator_output, axis=1)   
+df_generator_output = df_fixed_baseline.loc[df_fixed_baseline['variable_name']=='p'].apply(_get_generator_output, axis=1)   
 
 
-# In[14]:
+# #### Energy output by technology type for different emissions intensity baselines
+
+# In[13]:
 
 
 # Energy output from different types of generators
 df_energy = pd.merge(df_generator_output, df_g[['NEM_REGION', 'FUEL_TYPE', 'FUEL_CAT']], how='left', left_on='DUID', right_index=True).groupby(['FUEL_TYPE', 'FIXED_BASELINE'])[['energy_output']].sum().reset_index().pivot(index='FIXED_BASELINE', columns='FUEL_TYPE', values='energy_output')
-
-# Emissions from different types of generators
-df_emissions = pd.merge(df_generator_output, df_g[['NEM_REGION', 'FUEL_TYPE', 'FUEL_CAT']], how='left', left_on='DUID', right_index=True).groupby(['FUEL_TYPE', 'FIXED_BASELINE'])[['emissions']].sum().reset_index().pivot(index='FIXED_BASELINE', columns='FUEL_TYPE', values='emissions')
-
 
 plt.clf()
 fig, ax1 = plt.subplots()
@@ -488,13 +530,61 @@ pd.merge(df_generator_output, df_g[['NEM_REGION', 'FUEL_TYPE', 'FUEL_CAT']], how
 plt.show()
 
 
-# In[15]:
+# #### Emissions by technology type for different emissions intensity baselines
 
+# In[14]:
+
+
+# Emissions from different types of generators
+df_emissions = pd.merge(df_generator_output, df_g[['NEM_REGION', 'FUEL_TYPE', 'FUEL_CAT']], how='left', left_on='DUID', right_index=True).groupby(['FUEL_TYPE', 'FIXED_BASELINE'])[['emissions']].sum().reset_index().pivot(index='FIXED_BASELINE', columns='FUEL_TYPE', values='emissions')
 
 plt.clf()
 df_emissions.plot(logy=True)
 plt.show()
 
+
+# ## Manuscript Plots
+# Permit price and average national price as a function of baseline
+
+# In[24]:
+
+
+# Permit price
+df_permit_price_target.loc[df_permit_price_target['variable_name']=='tau'].apply(lambda x: pd.Series({'tau': x['Variable']['Value'], 'PERMIT_PRICE_TARGET': x['PERMIT_PRICE_TARGET']}), axis=1).mul(100)
+
+
+# In[40]:
+
+
+# Extract key values and place into DataFrame
+df_1 = df_weighted_rrn_price_target.loc['PHI_DISCRETE'].apply(lambda x: pd.Series({'PHI_DISCRETE': x['Variable']['Value'], 'WEIGHTED_RRN_PRICE_TARGET_BAU_MULTIPLE': x['WEIGHTED_RRN_PRICE_TARGET_BAU_MULTIPLE'], 'WEIGTHED_RRN_PRICE_TARGET': x['WEIGTHED_RRN_PRICE_TARGET'] * 100}), axis=1)
+
+
+# In[43]:
+
+
+plt.clf()
+
+# Initialise figure object
+fig, ax1 = plt.subplots()
+ax2 = ax1.twinx()
+
+# Permit prices
+df_tau.plot(ax=ax1, linestyle='--', color='#db1313')
+
+# Average wholesale prices
+df_average_prices.loc['NATIONAL'].plot(ax=ax2, linestyle=':', color='#a07f09')
+
+# Weighted RRN prices
+df_weighted_rrn_prices.plot(ax=ax2, color='#4553a5', linestyle='-.')
+
+for index, row in df_1.iterrows():
+    ax2.plot([0.9,1.1], [row['WEIGTHED_RRN_PRICE_TARGET'], row['WEIGTHED_RRN_PRICE_TARGET']], ':')
+
+plt.show()
+
+
+# ### Impact of baseline on SRMCs for different technologies
 
 # In[16]:
 
@@ -556,6 +646,8 @@ def construct_srmc_comparison(df_tau, df_g, fuel_types):
 means, errors = construct_srmc_comparison(df_tau, df_g, ['Black coal', 'Brown coal', 'Natural Gas (Pipeline)'])
 
 
+# Plot SRMC bands (maximum and minimum) SRMCs for each main generating technology over a range of emissions intensity baselines.
+
 # In[17]:
 
 
@@ -571,55 +663,5 @@ ax1.fill_between(means.index, means.subtract(errors)['Natural Gas (Pipeline)'], 
 ax1.fill_between(means.index, means.subtract(errors)['Black coal'], means.add(errors)['Black coal'], facecolor='red', alpha=0.5)
 ax1.fill_between(means.index, means.subtract(errors)['Brown coal'], means.add(errors)['Brown coal'], facecolor='blue', alpha=0.5)
 
-plt.show()
-
-
-# Results from model used to target weighted Regional Reference Node prices
-
-# In[20]:
-
-
-# Results from model used to target weighted Regional Reference Node prices
-df_weighted_rrn_price_target = results_processor.formatted_results(scenario_name='weighted_rrn_price_target')
-
-# Average electricity prices for different emissions intensity baselines
-df_wrpt_average_prices = get_average_prices(df_weighted_rrn_price_target, category='WEIGTHED_RRN_PRICE_TARGET')
-
-# Sort index to allow slicing
-df_wrpt_average_prices = df_wrpt_average_prices.sort_index()
-
-# Weighted RRN prices
-df_wrpt_weighted_rrn_prices = get_weighted_rrn_prices(df_weighted_rrn_price_target, category='WEIGTHED_RRN_PRICE_TARGET')
-
-# Comparision between price target, weighted prices, and average prices
-df_wrpt_average_prices.loc[(slice('NATIONAL'), slice(None))].reset_index().drop('NEM_REGION', axis=1).set_index('WEIGTHED_RRN_PRICE_TARGET').rename(columns={0: 'average_prices'}).join(df_wrpt_weighted_rrn_prices.to_frame(), how='left')
-
-
-# In[19]:
-
-
-df_weighted_rrn_price_target
-
-
-# Results from model used to target permit prices
-
-# In[ ]:
-
-
-# Results from model used to target weighted Regional Reference Node prices
-df_permit_price_target = results_processor.formatted_results(scenario_name='permit_price_target')
-
-# Permit price
-df_permit_price_target.loc[df_permit_price_target['variable_name']=='tau'].apply(lambda x: x['Variable']['Value'], axis=1)
-
-
-# Regional price impacts for different baselines.
-
-# In[ ]:
-
-
-plt.clf()
-# Average prices in each NEM region, including aggregate national values
-df_average_prices.reset_index().pivot(index='FIXED_BASELINE', columns='NEM_REGION', values=0).plot()
 plt.show()
 

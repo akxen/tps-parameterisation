@@ -24,6 +24,8 @@ import pandas as pd
 import geopandas as gp
 
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MultipleLocator, FormatStrFormatter
+# plt.rc('text', usetex=True)
 
 
 # ## Paths
@@ -228,31 +230,31 @@ results_processor = results_processor(results_dir=results_dir)
 # In[5]:
 
 
-# Fixed emissions intensity baseline
-# ----------------------------------
-df_fixed_baseline = results_processor.formatted_results(scenario_name='fixed_baseline')
+# # Fixed emissions intensity baseline
+# # ----------------------------------
+# df_fixed_baseline = results_processor.formatted_results(scenario_name='fixed_baseline')
 
-# Save DataFrame
-with open(os.path.join(output_dir, 'tmp', 'df_fixed_baseline.pickle'), 'wb') as f:
-    pickle.dump(df_fixed_baseline, f)
+# # Save DataFrame
+# with open(os.path.join(output_dir, 'tmp', 'df_fixed_baseline.pickle'), 'wb') as f:
+#     pickle.dump(df_fixed_baseline, f)
 
 
-# Weighted Regional Reference Node (RRN) price targeting
-# ------------------------------------------------------
-df_weighted_rrn_price_target = results_processor.formatted_results(scenario_name='weighted_rrn_price_target')
+# # Weighted Regional Reference Node (RRN) price targeting
+# # ------------------------------------------------------
+# df_weighted_rrn_price_target = results_processor.formatted_results(scenario_name='weighted_rrn_price_target')
 
-# Save DataFrame
-with open(os.path.join(output_dir, 'tmp', 'df_weighted_rrn_price_target.pickle'), 'wb') as f:
-    pickle.dump(df_weighted_rrn_price_target, f)
+# # Save DataFrame
+# with open(os.path.join(output_dir, 'tmp', 'df_weighted_rrn_price_target.pickle'), 'wb') as f:
+#     pickle.dump(df_weighted_rrn_price_target, f)
     
 
-# Permit price targeting scenarios
-# --------------------------------
-df_permit_price_target = results_processor.formatted_results(scenario_name='permit_price_target')
+# # Permit price targeting scenarios
+# # --------------------------------
+# df_permit_price_target = results_processor.formatted_results(scenario_name='permit_price_target')
 
-# Save DataFrame
-with open(os.path.join(output_dir, 'tmp', 'df_permit_price_target.pickle'), 'wb') as f:
-    pickle.dump(df_permit_price_target, f)
+# # Save DataFrame
+# with open(os.path.join(output_dir, 'tmp', 'df_permit_price_target.pickle'), 'wb') as f:
+#     pickle.dump(df_permit_price_target, f)
 
 
 # Load data if processed previously (save time).
@@ -530,12 +532,49 @@ pd.merge(df_generator_output, df_g[['NEM_REGION', 'FUEL_TYPE', 'FUEL_CAT']], how
 plt.show()
 
 
+# In[244]:
+
+
+plt.clf()
+
+fig, ax1 = plt.subplots()
+
+s = pd.Series(['#0071b2', '#ce0037', '#039642'], index=['Black coal', 'Brown coal', 'Natural Gas (Pipeline)'])
+
+pd.merge(df_generator_output, df_g[['NEM_REGION', 'FUEL_TYPE', 'FUEL_CAT']], how='left', left_on='DUID', right_index=True).groupby(['FUEL_TYPE', 'FIXED_BASELINE'])['energy_output'].sum().reset_index().pivot(index='FIXED_BASELINE', columns='FUEL_TYPE', values='energy_output')[['Black coal', 'Brown coal', 'Natural Gas (Pipeline)']].plot(logy=True, color=s, legend=False, ax=ax1)
+
+ax1.legend(['Black coal', 'Brown coal', 'Natural gas'], fontsize=labelsize)
+
+# Format axes labels
+ax1.set_xlabel('Emissions intensity baseline (tCO$_{2}$/MWh)', fontsize=fontsize)
+ax1.set_ylabel('Energy output (MWh)', fontsize=fontsize)
+
+
+# Format ticks
+ax1.minorticks_on()
+ax1.tick_params(axis='x', labelsize=labelsize)
+ax1.tick_params(axis='y', labelsize=labelsize)
+
+majorLocator = MultipleLocator(0.05)
+ax1.xaxis.set_major_locator(majorLocator)
+
+# Set figure size
+fig.set_size_inches(7.22433/2, (7.22433/2) / 1.61803398875)
+fig.subplots_adjust(left=0.13, bottom=0.18, right=0.97, top=0.97)
+
+# Save figure
+fig.savefig('test4.pdf')
+plt.show()
+
+
 # #### Emissions by technology type for different emissions intensity baselines
 
 # In[14]:
 
 
 # Emissions from different types of generators
+
+
 df_emissions = pd.merge(df_generator_output, df_g[['NEM_REGION', 'FUEL_TYPE', 'FUEL_CAT']], how='left', left_on='DUID', right_index=True).groupby(['FUEL_TYPE', 'FIXED_BASELINE'])[['emissions']].sum().reset_index().pivot(index='FIXED_BASELINE', columns='FUEL_TYPE', values='emissions')
 
 plt.clf()
@@ -546,47 +585,237 @@ plt.show()
 # ## Manuscript Plots
 # Permit price and average national price as a function of baseline
 
-# In[24]:
+# In[15]:
 
 
 # Permit price
 df_permit_price_target.loc[df_permit_price_target['variable_name']=='tau'].apply(lambda x: pd.Series({'tau': x['Variable']['Value'], 'PERMIT_PRICE_TARGET': x['PERMIT_PRICE_TARGET']}), axis=1).mul(100)
 
 
-# In[40]:
+# In[74]:
 
 
 # Extract key values and place into DataFrame
 df_1 = df_weighted_rrn_price_target.loc['PHI_DISCRETE'].apply(lambda x: pd.Series({'PHI_DISCRETE': x['Variable']['Value'], 'WEIGHTED_RRN_PRICE_TARGET_BAU_MULTIPLE': x['WEIGHTED_RRN_PRICE_TARGET_BAU_MULTIPLE'], 'WEIGTHED_RRN_PRICE_TARGET': x['WEIGTHED_RRN_PRICE_TARGET'] * 100}), axis=1)
 
+# Average BAU price
+bau_price = df_average_prices.loc['NATIONAL'].iloc[-1]
 
-# In[43]:
+# Add actual average wholesale prices from scenario
+df_1_prices = get_average_prices(df_weighted_rrn_price_target, category='WEIGHTED_RRN_PRICE_TARGET_BAU_MULTIPLE')
+df_1 = pd.merge(df_1, 
+                df_1_prices.loc['NATIONAL'].div(bau_price).to_frame().rename(columns={0: 'AVERAGE_PRICE_BAU_MULTIPLE'}),
+                left_on='WEIGHTED_RRN_PRICE_TARGET_BAU_MULTIPLE',
+                right_index=True)
+
+# Permit price targeting scenarios
+df_2 = df_permit_price_target.groupby('PERMIT_PRICE_TARGET')[['Variable']].apply(lambda x: x.loc[['tau', 'PHI_DISCRETE']]).unstack().applymap(lambda x: x['Value'])
+df_2.columns = df_2.columns.droplevel(0)
+
+# Multiply by 100 to account for prior normalisation
+df_2['tau'] = df_2['tau'] * 100
+
+
+# In[77]:
 
 
 plt.clf()
 
-# Initialise figure object
-fig, ax1 = plt.subplots()
-ax2 = ax1.twinx()
+# Initialise figure
+# -----------------
+fig = plt.figure()
+ax1 = plt.axes([0.09, 0.62, 0.4, 0.36]) # Average price series
+ax2 = plt.axes([0.58, 0.62, 0.4, 0.36]) # Average price and target price error
+ax3 = plt.axes([0.09, 0.12, 0.4, 0.36]) # Permit price series
+ax4 = plt.axes([0.58, 0.12, 0.4, 0.36]) # Permit price and target error
 
-# Permit prices
-df_tau.plot(ax=ax1, linestyle='--', color='#db1313')
+
+# Parameters common to all figures
+# --------------------------------
+fontsize = 9
+labelsize = 8
+
 
 # Average wholesale prices
-df_average_prices.loc['NATIONAL'].plot(ax=ax2, linestyle=':', color='#a07f09')
+# ------------------------
+# Average price for each fixed baseline scenario
+ax1.plot(df_average_prices.loc['NATIONAL'].div(bau_price).index,
+         df_average_prices.loc['NATIONAL'].div(bau_price).values, 
+         linestyle='-',
+         color='#24a585',
+         marker='o',
+         markersize=1.5,
+         linewidth=0.75,
+         markeredgewidth=0.5)
 
-# Weighted RRN prices
-df_weighted_rrn_prices.plot(ax=ax2, color='#4553a5', linestyle='-.')
+# Baselines for given weighted RRN price target
+ax1.scatter(df_1['PHI_DISCRETE'], df_1['AVERAGE_PRICE_BAU_MULTIPLE'],
+            color='red', marker='+', zorder=3)
 
+# Horizontal lines denoting price targets
 for index, row in df_1.iterrows():
-    ax2.plot([0.9,1.1], [row['WEIGTHED_RRN_PRICE_TARGET'], row['WEIGTHED_RRN_PRICE_TARGET']], ':')
+    ax1.plot([0.9, 1.1], [row['WEIGHTED_RRN_PRICE_TARGET_BAU_MULTIPLE'], row['WEIGHTED_RRN_PRICE_TARGET_BAU_MULTIPLE']], linestyle=':', linewidth=0.5, color='k')
 
+# Add label to horizontal lines specifying average price target
+ax1.text(1.079, 1.405, '$\hat{\lambda} = 1.4$', fontsize=fontsize-4)
+ax1.text(1.079, 1.305, '$\hat{\lambda} = 1.3$', fontsize=fontsize-4)
+ax1.text(1.079, 1.205, '$\hat{\lambda} = 1.2$', fontsize=fontsize-4)
+ax1.text(1.079, 1.105, '$\hat{\lambda} = 1.1$', fontsize=fontsize-4)
+ax1.text(1.079, 0.805, '$\hat{\lambda} = 0.8$', fontsize=fontsize-4)
+
+# Format axes
+ax1.set_ylabel('Average price \n relative to BAU', fontsize=fontsize)
+ax1.set_xlabel('(a) \n Emissions intensity baseline (tCO$_{2}$/MWh)', fontsize=fontsize)
+
+# Format ticks
+ax1.minorticks_on()
+majorLocator = MultipleLocator(0.2)
+ax1.yaxis.set_major_locator(majorLocator)
+ax1.tick_params(axis='x', labelsize=labelsize)
+ax1.tick_params(axis='y', labelsize=labelsize)
+
+
+# Difference between target and outcome - weighted RRN prices
+# -----------------------------------------------------------
+# Share common y-axis
+ax2.get_shared_y_axes().join(ax2, ax1)
+
+# Weighted RRN prices and their corresponding price targets
+ax2.scatter(df_1['WEIGHTED_RRN_PRICE_TARGET_BAU_MULTIPLE'], df_1['AVERAGE_PRICE_BAU_MULTIPLE'], marker='+', color='r')
+
+# Straight line with slope = 1
+ax2.plot([0.8, 1.45], [0.8, 1.45], linestyle=':', linewidth=0.8, color='black')
+
+# Set axis limits
+ax2.set_ylim(0.75, 1.6)
+ax2.set_xlim(0.75, 1.5)
+
+# Set axes labels
+ax2.set_xlabel('(b)\nTarget price relative to BAU', fontsize=fontsize)
+ax2.set_ylabel('Average price\nrelative to BAU', fontsize=fontsize)
+
+# Format ticks
+ax2.minorticks_on()
+ax2.tick_params(axis='x', labelsize=8)
+
+majorLocator = MultipleLocator(0.2)
+ax2.yaxis.set_major_locator(majorLocator)
+
+majorLocator = MultipleLocator(0.1)
+ax2.xaxis.set_major_locator(majorLocator)
+
+minorLocator = MultipleLocator(0.05)
+ax2.xaxis.set_minor_locator(minorLocator)
+
+ax2.tick_params(axis='x', labelsize=labelsize)
+ax2.tick_params(axis='y', labelsize=labelsize)
+
+ax2.tick_params(axis='x', labelsize=labelsize)
+ax2.tick_params(axis='y', labelsize=labelsize)
+
+
+# Permit price profile
+# --------------------
+ax3.get_shared_x_axes().join(ax3, ax1)
+
+for index, row in df_2.iterrows():
+    ax3.plot([0.9, 1.1], [index * 100, index * 100], linestyle=':', linewidth=0.5, color='k')
+
+# Permit prices
+df_tau.plot(ax=ax3,
+            linestyle='-',
+            color='#db1313',
+            marker='o',
+            markersize=1.5,
+            linewidth=0.75,
+            markeredgewidth=0.5)
+
+ax3.scatter(df_2['PHI_DISCRETE'], df_2['tau'], color='blue', marker='2', zorder=3)
+
+ax3.set_ylim([-5, 140])
+
+# Set axes labels
+ax3.set_ylabel('Permit price \n (\$/tCO$_{2}$)', fontsize=fontsize)
+ax3.set_xlabel('(c) \n Emissions intensity baseline (tCO$_{2}$/MWh)', fontsize=fontsize)
+
+# Format ticks
+ax3.minorticks_on()
+ax3.tick_params(axis='x', labelsize=labelsize)
+ax3.tick_params(axis='y', labelsize=labelsize)
+
+# Add permit price target labels to horizontal lines
+ax3.text(1.077, 100.5, r'$\hat{\tau} = 100$', fontsize=fontsize-4)
+ax3.text(1.077, 75.5, r'$\hat{\tau} = 75$', fontsize=fontsize-4)
+ax3.text(1.077, 50.5, r'$\hat{\tau} = 50$', fontsize=fontsize-4)
+ax3.text(1.077, 25.5, r'$\hat{\tau} = 25$', fontsize=fontsize-4)
+
+
+# Difference between permit price and target
+# ------------------------------------------
+ax4.get_shared_y_axes().join(ax4, ax3)
+ax4.scatter(df_2.reset_index()['PERMIT_PRICE_TARGET'].mul(100), df_2['tau'], marker='2', color='blue')
+
+# Line with slope = 1
+ax4.plot([0, 110], [0, 110], linestyle=':', linewidth=0.8, color='black')
+
+# Format labels
+ax4.set_ylabel('Permit price\n(\$/tCO$_{2}$)', fontsize=fontsize, labelpad=0.5)
+ax4.set_xlabel('(d)\nTarget permit price (\$/tCO$_{2}$)', fontsize=fontsize)
+
+# Format ticks
+ax4.minorticks_on()
+ax4.tick_params(axis='x', labelsize=labelsize)
+ax4.tick_params(axis='y', labelsize=labelsize)
+
+# Set axis limits
+ax4.set_xlim(-2.5, 120)
+
+# Set figure size
+fig.set_size_inches(7.22433, 3.48761+1)
+fig.savefig('test.pdf')
+
+plt.show()
+
+
+# In[124]:
+
+
+plt.clf()
+
+# Initialise figure
+fig, ax1 = plt.subplots()
+
+# Average price (x-axis) vs weighted RRN price (y-axis)
+ax1.scatter(df_average_prices.loc['NATIONAL'].div(bau_price), df_weighted_rrn_prices.div(bau_price),
+            marker='s',
+            color='#ce0037',
+            alpha=0.5,
+            s=10)
+
+# Line with slope = 1
+ax1.plot([0.92, 1.57], [0.92, 1.57], linestyle=':', color='k')
+
+# Axes labels
+ax1.set_xlabel('Average price (\$/MWh)', fontsize=fontsize)
+ax1.set_ylabel('Weighted RRN price (\$/MWh)', fontsize=fontsize)
+
+# Format ticks
+ax1.minorticks_on()
+ax1.tick_params(axis='x', labelsize=labelsize)
+ax1.tick_params(axis='y', labelsize=labelsize)
+
+# Set figure size
+fig.set_size_inches(7.22433/2, (7.22433/2) / 1.61803398875)
+fig.subplots_adjust(left=0.13, bottom=0.18, right=0.97, top=0.97)
+
+# Save figure
+fig.savefig('test2.pdf')
 plt.show()
 
 
 # ### Impact of baseline on SRMCs for different technologies
 
-# In[16]:
+# In[19]:
 
 
 def construct_srmc_comparison(df_tau, df_g, fuel_types):
@@ -648,20 +877,49 @@ means, errors = construct_srmc_comparison(df_tau, df_g, ['Black coal', 'Brown co
 
 # Plot SRMC bands (maximum and minimum) SRMCs for each main generating technology over a range of emissions intensity baselines.
 
-# In[17]:
+# In[216]:
 
 
 plt.clf()
+
+# Initialise figure
 fig, ax1 = plt.subplots()
 
-means.plot(ax=ax1)
-means.add(errors).plot(ax=ax1, style='--', color='k', legend=False)
-means.subtract(errors).plot(ax=ax1, style='--', color='k', legend=False)
+# Colours associated with each generating technology
+s = pd.Series(['#0071b2', '#ce0037', '#039642'], index=['Black coal', 'Brown coal', 'Natural Gas (Pipeline)'])
+
+# Mean, max, and min SRMCs for different generating technologies
+means.plot(ax=ax1, color=s, alpha=1, style='--', legend=False, linewidth=0.5)
+means.add(errors).plot(ax=ax1, style='-', color=s, legend=False, alpha=1, linewidth=0.5)
+means.subtract(errors).plot(ax=ax1, style='-', color=s, legend=False, alpha=1, linewidth=0.5)
 
 # Fill line between upper and lower standard deviation and mean SRMC
-ax1.fill_between(means.index, means.subtract(errors)['Natural Gas (Pipeline)'], means.add(errors)['Natural Gas (Pipeline)'], facecolor='green', alpha=0.5)
-ax1.fill_between(means.index, means.subtract(errors)['Black coal'], means.add(errors)['Black coal'], facecolor='red', alpha=0.5)
-ax1.fill_between(means.index, means.subtract(errors)['Brown coal'], means.add(errors)['Brown coal'], facecolor='blue', alpha=0.5)
+ax1.fill_between(means.index, means.subtract(errors)['Natural Gas (Pipeline)'], means.add(errors)['Natural Gas (Pipeline)'], facecolor='#039642', alpha=0.5)
+ax1.fill_between(means.index, means.subtract(errors)['Black coal'], means.add(errors)['Black coal'], facecolor='#0071b2', alpha=0.5)
+ax1.fill_between(means.index, means.subtract(errors)['Brown coal'], means.add(errors)['Brown coal'], facecolor='#ce0037', alpha=0.5)
+
+# Format legend
+ax1.legend(['Black coal', 'Brown coal', 'Natural gas'], loc="upper center", ncol=3, bbox_to_anchor=(0, 0.15, 1, 1), fontsize=labelsize-1)
+
+# Axes labels
+ax1.set_xlabel('Emissions intensity baseline (tCO$_{2}$/MWh)', fontsize=fontsize)
+ax1.set_ylabel('SRMC (\$/MWh)', labelpad=-0.1, fontsize=fontsize)
+
+# Format tick labels
+ax1.minorticks_on()
+ax1.tick_params(axis='x', labelsize=labelsize)
+ax1.tick_params(axis='y', labelsize=labelsize)
+
+# Set axes limits
+ax1.set_xlim(0.9, 1.1)
+ax1.set_ylim(0, 120)
+
+# Format figure size
+fig.set_size_inches(7.22433/2, (7.22433/2) / 1.61803398875)
+fig.subplots_adjust(left=0.125, bottom=0.175, right=0.955, top=0.905)
+
+# Save figure
+fig.savefig('test3.pdf')
 
 plt.show()
 

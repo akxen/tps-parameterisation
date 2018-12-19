@@ -23,14 +23,24 @@ import numpy as np
 import pandas as pd
 import geopandas as gp
 
+import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator, FormatStrFormatter
-# plt.rc('text', usetex=True)
+
+
+# Set text options
+
+# In[2]:
+
+
+plt.rc('text', usetex=True)
+matplotlib.rcParams['font.family'] = ['sans-serif']
+matplotlib.rcParams['font.serif'] = ['Helvetica']
 
 
 # ## Paths
 
-# In[2]:
+# In[3]:
 
 
 # Data directory
@@ -48,7 +58,7 @@ output_dir = os.path.join(os.path.curdir, 'output')
 
 # ## Load data
 
-# In[3]:
+# In[4]:
 
 
 # Operating scenario data
@@ -64,7 +74,7 @@ df_g = pd.read_csv(os.path.join(data_dir, 'egrimod-nem-dataset-v1.3', 'akxen-egr
 
 # Load and collate model result data in a single DataFrame.
 
-# In[4]:
+# In[5]:
 
 
 class results_processor(object):
@@ -227,7 +237,7 @@ results_processor = results_processor(results_dir=results_dir)
 
 # ## Process results from different scenarios
 
-# In[5]:
+# In[6]:
 
 
 # # Fixed emissions intensity baseline
@@ -259,7 +269,7 @@ results_processor = results_processor(results_dir=results_dir)
 
 # Load data if processed previously (save time).
 
-# In[6]:
+# In[7]:
 
 
 # Fixed baseline scenarios
@@ -279,7 +289,7 @@ with open(os.path.join(output_dir, 'tmp', 'df_weighted_rrn_price_target.pickle')
 # ### Fixed emissions intensity baseline scenarios
 # #### Permit price as a function of the emissions intensity baseline
 
-# In[7]:
+# In[8]:
 
 
 def permit_price_vs_baseline(df, category):
@@ -318,7 +328,7 @@ plt.show()
 
 # #### Average wholesale price as a function of the emissions intensity baseline
 
-# In[8]:
+# In[9]:
 
 
 def get_average_prices(df, category):
@@ -385,25 +395,27 @@ def get_average_prices(df, category):
 # Average electricity prices for different emissions intensity baselines
 df_average_prices = get_average_prices(df_fixed_baseline, category='FIXED_BASELINE')
 
-plt.clf()
-df_average_prices.loc['NATIONAL'].plot()
-plt.show()
+# plt.clf()
+# df_average_prices.loc['NATIONAL'].plot()
+# plt.show()
 
 
 # #### Regional price impacts for different baselines
 
-# In[9]:
+# In[10]:
 
 
-plt.clf()
-# Average prices in each NEM region, including aggregate national values
-df_average_prices.reset_index().pivot(index='FIXED_BASELINE', columns='NEM_REGION', values=0).plot()
+(df_average_prices
+ .reset_index()
+ .pivot(index='FIXED_BASELINE', columns='NEM_REGION', values=0)
+ .reset_index().rename(columns={'FIXED_BASELINE': 'Baseline', 'NEM_REGION':'Region'})
+ .set_index('Baseline').plot())
 plt.show()
 
 
 # #### Weighted Regional Reference Node (RRN) prices
 
-# In[10]:
+# In[11]:
 
 
 def get_weighted_rrn_prices(df, category):
@@ -476,17 +488,6 @@ def get_weighted_rrn_prices(df, category):
 df_weighted_rrn_prices = get_weighted_rrn_prices(df_fixed_baseline, category='FIXED_BASELINE')
 
 
-# #### Weighted RRN price and average price as a function of baseline
-# Comparison to see how well weighted RRN prices capture average wholesale price outcomes.
-
-# In[11]:
-
-
-plt.clf()
-plt.scatter(df_average_prices['NATIONAL'].tolist(), df_weighted_rrn_prices.tolist())
-plt.show()
-
-
 # #### Generator output by technology type
 
 # In[12]:
@@ -517,82 +518,20 @@ def _get_generator_output(row):
 df_generator_output = df_fixed_baseline.loc[df_fixed_baseline['variable_name']=='p'].apply(_get_generator_output, axis=1)   
 
 
-# #### Energy output by technology type for different emissions intensity baselines
+# ## Manuscript Plots
+# Parameters common to all plots.
 
 # In[13]:
 
 
-# Energy output from different types of generators
-df_energy = pd.merge(df_generator_output, df_g[['NEM_REGION', 'FUEL_TYPE', 'FUEL_CAT']], how='left', left_on='DUID', right_index=True).groupby(['FUEL_TYPE', 'FIXED_BASELINE'])[['energy_output']].sum().reset_index().pivot(index='FIXED_BASELINE', columns='FUEL_TYPE', values='energy_output')
-
-plt.clf()
-fig, ax1 = plt.subplots()
-ax2 = ax1.twinx()
-pd.merge(df_generator_output, df_g[['NEM_REGION', 'FUEL_TYPE', 'FUEL_CAT']], how='left', left_on='DUID', right_index=True).groupby(['FUEL_TYPE', 'FIXED_BASELINE'])['energy_output'].sum().reset_index().pivot(index='FIXED_BASELINE', columns='FUEL_TYPE', values='energy_output').plot(logy=True, ax=ax1)
-plt.show()
+fontsize = 9
+labelsize = 8
 
 
-# In[244]:
-
-
-plt.clf()
-
-fig, ax1 = plt.subplots()
-
-s = pd.Series(['#0071b2', '#ce0037', '#039642'], index=['Black coal', 'Brown coal', 'Natural Gas (Pipeline)'])
-
-pd.merge(df_generator_output, df_g[['NEM_REGION', 'FUEL_TYPE', 'FUEL_CAT']], how='left', left_on='DUID', right_index=True).groupby(['FUEL_TYPE', 'FIXED_BASELINE'])['energy_output'].sum().reset_index().pivot(index='FIXED_BASELINE', columns='FUEL_TYPE', values='energy_output')[['Black coal', 'Brown coal', 'Natural Gas (Pipeline)']].plot(logy=True, color=s, legend=False, ax=ax1)
-
-ax1.legend(['Black coal', 'Brown coal', 'Natural gas'], fontsize=labelsize)
-
-# Format axes labels
-ax1.set_xlabel('Emissions intensity baseline (tCO$_{2}$/MWh)', fontsize=fontsize)
-ax1.set_ylabel('Energy output (MWh)', fontsize=fontsize)
-
-
-# Format ticks
-ax1.minorticks_on()
-ax1.tick_params(axis='x', labelsize=labelsize)
-ax1.tick_params(axis='y', labelsize=labelsize)
-
-majorLocator = MultipleLocator(0.05)
-ax1.xaxis.set_major_locator(majorLocator)
-
-# Set figure size
-fig.set_size_inches(7.22433/2, (7.22433/2) / 1.61803398875)
-fig.subplots_adjust(left=0.13, bottom=0.18, right=0.97, top=0.97)
-
-# Save figure
-fig.savefig('test4.pdf')
-plt.show()
-
-
-# #### Emissions by technology type for different emissions intensity baselines
+# #### Weighted RRN prices and permit prices
+# Format data for plotting.
 
 # In[14]:
-
-
-# Emissions from different types of generators
-
-
-df_emissions = pd.merge(df_generator_output, df_g[['NEM_REGION', 'FUEL_TYPE', 'FUEL_CAT']], how='left', left_on='DUID', right_index=True).groupby(['FUEL_TYPE', 'FIXED_BASELINE'])[['emissions']].sum().reset_index().pivot(index='FIXED_BASELINE', columns='FUEL_TYPE', values='emissions')
-
-plt.clf()
-df_emissions.plot(logy=True)
-plt.show()
-
-
-# ## Manuscript Plots
-# Permit price and average national price as a function of baseline
-
-# In[15]:
-
-
-# Permit price
-df_permit_price_target.loc[df_permit_price_target['variable_name']=='tau'].apply(lambda x: pd.Series({'tau': x['Variable']['Value'], 'PERMIT_PRICE_TARGET': x['PERMIT_PRICE_TARGET']}), axis=1).mul(100)
-
-
-# In[74]:
 
 
 # Extract key values and place into DataFrame
@@ -613,10 +552,12 @@ df_2 = df_permit_price_target.groupby('PERMIT_PRICE_TARGET')[['Variable']].apply
 df_2.columns = df_2.columns.droplevel(0)
 
 # Multiply by 100 to account for prior normalisation
-df_2['tau'] = df_2['tau'] * 100
+df_2['tau'] = df_2['tau'].mul(100)
 
 
-# In[77]:
+# Construct plot.
+
+# In[15]:
 
 
 plt.clf()
@@ -628,12 +569,6 @@ ax1 = plt.axes([0.09, 0.62, 0.4, 0.36]) # Average price series
 ax2 = plt.axes([0.58, 0.62, 0.4, 0.36]) # Average price and target price error
 ax3 = plt.axes([0.09, 0.12, 0.4, 0.36]) # Permit price series
 ax4 = plt.axes([0.58, 0.12, 0.4, 0.36]) # Permit price and target error
-
-
-# Parameters common to all figures
-# --------------------------------
-fontsize = 9
-labelsize = 8
 
 
 # Average wholesale prices
@@ -657,11 +592,11 @@ for index, row in df_1.iterrows():
     ax1.plot([0.9, 1.1], [row['WEIGHTED_RRN_PRICE_TARGET_BAU_MULTIPLE'], row['WEIGHTED_RRN_PRICE_TARGET_BAU_MULTIPLE']], linestyle=':', linewidth=0.5, color='k')
 
 # Add label to horizontal lines specifying average price target
-ax1.text(1.079, 1.405, '$\hat{\lambda} = 1.4$', fontsize=fontsize-4)
-ax1.text(1.079, 1.305, '$\hat{\lambda} = 1.3$', fontsize=fontsize-4)
-ax1.text(1.079, 1.205, '$\hat{\lambda} = 1.2$', fontsize=fontsize-4)
-ax1.text(1.079, 1.105, '$\hat{\lambda} = 1.1$', fontsize=fontsize-4)
-ax1.text(1.079, 0.805, '$\hat{\lambda} = 0.8$', fontsize=fontsize-4)
+ax1.text(1.075, 1.405, '$\hat{\lambda} = 1.4$', fontsize=fontsize-4)
+ax1.text(1.075, 1.305, '$\hat{\lambda} = 1.3$', fontsize=fontsize-4)
+ax1.text(1.075, 1.205, '$\hat{\lambda} = 1.2$', fontsize=fontsize-4)
+ax1.text(1.075, 1.105, '$\hat{\lambda} = 1.1$', fontsize=fontsize-4)
+ax1.text(1.075, 0.805, '$\hat{\lambda} = 0.8$', fontsize=fontsize-4)
 
 # Format axes
 ax1.set_ylabel('Average price \n relative to BAU', fontsize=fontsize)
@@ -772,12 +707,15 @@ ax4.set_xlim(-2.5, 120)
 
 # Set figure size
 fig.set_size_inches(7.22433, 3.48761+1)
-fig.savefig('test.pdf')
+fig.savefig(os.path.join(output_dir, 'figures', 'target_prices.pdf'))
 
 plt.show()
 
 
-# In[124]:
+# #### Comparison between weighted RRN price and average price
+# See how well weighted RRN prices correspond with average prices.
+
+# In[16]:
 
 
 plt.clf()
@@ -796,8 +734,8 @@ ax1.scatter(df_average_prices.loc['NATIONAL'].div(bau_price), df_weighted_rrn_pr
 ax1.plot([0.92, 1.57], [0.92, 1.57], linestyle=':', color='k')
 
 # Axes labels
-ax1.set_xlabel('Average price (\$/MWh)', fontsize=fontsize)
-ax1.set_ylabel('Weighted RRN price (\$/MWh)', fontsize=fontsize)
+ax1.set_xlabel('Average price relative to BAU', fontsize=fontsize)
+ax1.set_ylabel('Weighted RRN price\nrelative to BAU', fontsize=fontsize)
 
 # Format ticks
 ax1.minorticks_on()
@@ -806,16 +744,16 @@ ax1.tick_params(axis='y', labelsize=labelsize)
 
 # Set figure size
 fig.set_size_inches(7.22433/2, (7.22433/2) / 1.61803398875)
-fig.subplots_adjust(left=0.13, bottom=0.18, right=0.97, top=0.97)
+fig.subplots_adjust(left=0.17, bottom=0.18, right=0.97, top=0.97)
 
 # Save figure
-fig.savefig('test2.pdf')
+fig.savefig(os.path.join(output_dir, 'figures', 'weighted_rrn_prices_average_price_comparison.pdf'))
 plt.show()
 
 
-# ### Impact of baseline on SRMCs for different technologies
+# ### Impact of baseline on SRMCs and energy output for different technologies
 
-# In[19]:
+# In[17]:
 
 
 def construct_srmc_comparison(df_tau, df_g, fuel_types):
@@ -860,49 +798,59 @@ def construct_srmc_comparison(df_tau, df_g, fuel_types):
     # Concatenate DataFrames. Compute mean and standard deviation for SRMCs for generators of different fuel types
     df = (pd.concat(dfs)
           .drop('tau', axis=1)
-          .join(df_g['FUEL_TYPE'], how='left')
+          .join(df_g[['FUEL_TYPE', 'REG_CAP']], how='left')
           .groupby(['FIXED_BASELINE', 'FUEL_TYPE'])
-          .apply(lambda x: pd.Series({'SRMC': x['SRMC'].mean(), 'std': x['SRMC'].std()})))
+          .apply(lambda x: pd.Series({'mean': x['SRMC'].mean(), 'weighted_mean': x['SRMC'].mul(x['REG_CAP'].div(x['REG_CAP'].sum())).sum(), 'max': x['SRMC'].max(), 'min': x['SRMC'].min(), 'std': x['SRMC'].std()})))
 
-    # Standard deviation for selected generators
-    errors = df[df.index.get_level_values(1).isin(fuel_types)].reset_index().pivot(index='FIXED_BASELINE', columns='FUEL_TYPE', values='std')
+    # Maximum SRMC for generators of each fuel type
+    max_srmcs = df[df.index.get_level_values(1).isin(fuel_types)].reset_index().pivot(index='FIXED_BASELINE', columns='FUEL_TYPE', values='max')
 
-    # Mean SRMC for selected generators
-    means = df[df.index.get_level_values(1).isin(fuel_types)].reset_index().pivot(index='FIXED_BASELINE', columns='FUEL_TYPE', values='SRMC')
+    # Minimum SRMC for generators of each fuel type
+    min_srmcs = df[df.index.get_level_values(1).isin(fuel_types)].reset_index().pivot(index='FIXED_BASELINE', columns='FUEL_TYPE', values='max')
+
+    # Mean SRMC
+    means = df[df.index.get_level_values(1).isin(fuel_types)].reset_index().pivot(index='FIXED_BASELINE', columns='FUEL_TYPE', values='mean')
     
-    return means, errors
+    # Weighted mean SRMC for selected generators (SRMCs weighted by installed capacity for each fuel type)
+    weighted_means = df[df.index.get_level_values(1).isin(fuel_types)].reset_index().pivot(index='FIXED_BASELINE', columns='FUEL_TYPE', values='weighted_mean')
 
-means, errors = construct_srmc_comparison(df_tau, df_g, ['Black coal', 'Brown coal', 'Natural Gas (Pipeline)'])
+    # Standard deviation
+    std_srmcs = df[df.index.get_level_values(1).isin(fuel_types)].reset_index().pivot(index='FIXED_BASELINE', columns='FUEL_TYPE', values='std')
+
+    return means, weighted_means, max_srmcs, min_srmcs, std_srmcs
+
+means, weighted_means, max_srmcs, min_srmcs, std_srmcs = construct_srmc_comparison(df_tau, df_g, ['Black coal', 'Brown coal', 'Natural Gas (Pipeline)'])
 
 
 # Plot SRMC bands (maximum and minimum) SRMCs for each main generating technology over a range of emissions intensity baselines.
 
-# In[216]:
+# In[18]:
 
 
 plt.clf()
 
+# SRMC ranges for different generating technologies
+# -------------------------------------------------
 # Initialise figure
-fig, ax1 = plt.subplots()
+fig = plt.figure()
+ax1 = plt.axes([0.065, 0.18, 0.41, 0.8]) # Average price series
+ax2 = plt.axes([0.58, 0.18, 0.41, 0.8]) # Average price and target price error
 
 # Colours associated with each generating technology
 s = pd.Series(['#0071b2', '#ce0037', '#039642'], index=['Black coal', 'Brown coal', 'Natural Gas (Pipeline)'])
 
 # Mean, max, and min SRMCs for different generating technologies
 means.plot(ax=ax1, color=s, alpha=1, style='--', legend=False, linewidth=0.5)
-means.add(errors).plot(ax=ax1, style='-', color=s, legend=False, alpha=1, linewidth=0.5)
-means.subtract(errors).plot(ax=ax1, style='-', color=s, legend=False, alpha=1, linewidth=0.5)
+means.add(std_srmcs).plot(ax=ax1, style='-', color=s, legend=False, alpha=1, linewidth=0.5)
+means.subtract(std_srmcs).plot(ax=ax1, style='-', color=s, legend=False, alpha=1, linewidth=0.5)
 
 # Fill line between upper and lower standard deviation and mean SRMC
-ax1.fill_between(means.index, means.subtract(errors)['Natural Gas (Pipeline)'], means.add(errors)['Natural Gas (Pipeline)'], facecolor='#039642', alpha=0.5)
-ax1.fill_between(means.index, means.subtract(errors)['Black coal'], means.add(errors)['Black coal'], facecolor='#0071b2', alpha=0.5)
-ax1.fill_between(means.index, means.subtract(errors)['Brown coal'], means.add(errors)['Brown coal'], facecolor='#ce0037', alpha=0.5)
-
-# Format legend
-ax1.legend(['Black coal', 'Brown coal', 'Natural gas'], loc="upper center", ncol=3, bbox_to_anchor=(0, 0.15, 1, 1), fontsize=labelsize-1)
+ax1.fill_between(means.index, means.subtract(std_srmcs)['Natural Gas (Pipeline)'], means.add(std_srmcs)['Natural Gas (Pipeline)'], facecolor='#039642', alpha=0.5)
+ax1.fill_between(means.index, means.subtract(std_srmcs)['Black coal'], means.add(std_srmcs)['Black coal'], facecolor='#0071b2', alpha=0.5)
+ax1.fill_between(means.index, means.subtract(std_srmcs)['Brown coal'], means.add(std_srmcs)['Brown coal'], facecolor='#ce0037', alpha=0.5)
 
 # Axes labels
-ax1.set_xlabel('Emissions intensity baseline (tCO$_{2}$/MWh)', fontsize=fontsize)
+ax1.set_xlabel('(a)\nEmissions intensity baseline (tCO$_{2}$/MWh)', fontsize=fontsize)
 ax1.set_ylabel('SRMC (\$/MWh)', labelpad=-0.1, fontsize=fontsize)
 
 # Format tick labels
@@ -912,14 +860,63 @@ ax1.tick_params(axis='y', labelsize=labelsize)
 
 # Set axes limits
 ax1.set_xlim(0.9, 1.1)
-ax1.set_ylim(0, 120)
+# ax1.set_ylim(0, 120)
+
+
+# Change in output
+# ----------------
+# Plot energy output for different technologies
+(pd.merge(df_generator_output, df_g[['NEM_REGION', 'FUEL_TYPE', 'FUEL_CAT']], 
+          how='left', left_on='DUID', right_index=True)
+ .groupby(['FUEL_TYPE', 'FIXED_BASELINE'])['energy_output']
+ .sum().reset_index()
+ .pivot(index='FIXED_BASELINE',
+        columns='FUEL_TYPE',
+        values='energy_output')[['Black coal', 'Brown coal', 'Natural Gas (Pipeline)']]
+ .plot(logy=True, color=s, legend=False, marker='o', markersize=1.3, linewidth=0.95, ax=ax2))
+
+# Construct legend
+ax2.legend(['Black coal', 'Brown coal', 'Natural gas'], fontsize=labelsize)
+
+# Format axes labels
+ax2.set_xlabel('(b)\nEmissions intensity baseline (tCO$_{2}$/MWh)', fontsize=fontsize)
+ax2.set_ylabel('Energy output (MWh)', fontsize=fontsize)
+
+# Format ticks
+ax2.minorticks_on()
+ax2.tick_params(axis='x', labelsize=labelsize)
+ax2.tick_params(axis='y', labelsize=labelsize)
+
+majorLocator = MultipleLocator(0.05)
+ax2.xaxis.set_major_locator(majorLocator)
 
 # Format figure size
-fig.set_size_inches(7.22433/2, (7.22433/2) / 1.61803398875)
+fig.set_size_inches(7.22433, (7.22433 / 1.61803398875)/1.5)
 fig.subplots_adjust(left=0.125, bottom=0.175, right=0.955, top=0.905)
 
 # Save figure
-fig.savefig('test3.pdf')
-
+fig.savefig(os.path.join(output_dir, 'figures', 'srmc_and_output_vs_baseline.pdf'))
 plt.show()
+
+
+# ### Emissions intensity range for generator types
+
+# In[19]:
+
+
+df_g[df_g['FUEL_CAT'] == 'Fossil'].groupby('FUEL_TYPE').apply(lambda x: pd.Series({'min': x['EMISSIONS'].min(), 'max': x['EMISSIONS'].max()})).drop(['Coal seam methane', 'Diesel oil', 'Kerosene - non aviation']).rename(index={'Natural Gas (Pipeline)': 'Gas'})
+
+
+# ### Generator capacities by fuel type relative to total generating capacity in system
+
+# In[20]:
+
+
+df_g.groupby('FUEL_TYPE').apply(lambda x: x['REG_CAP'].sum() / df_g.loc[:, 'REG_CAP'].sum())
+
+
+# In[26]:
+
+
+df_g.groupby('FUEL_TYPE').apply(lambda x: x['EMISSIONS'].mul(x['REG_CAP']).div(x['REG_CAP'].sum()).sum())
 

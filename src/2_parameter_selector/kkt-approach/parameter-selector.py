@@ -1,4 +1,4 @@
-
+#!/usr/bin/env python
 # coding: utf-8
 
 # # Parameter Selector
@@ -1235,7 +1235,7 @@ run_emissions_intensity_baseline_scenarios()
 
 # Identify baseline that targets wholesale electricity price
 
-# In[8]:
+# In[ ]:
 
 
 def run_weighted_rrn_price_target_scenarios():
@@ -1301,7 +1301,7 @@ run_weighted_rrn_price_target_scenarios()
 
 # Identify baseline that targets equilibrium permit price
 
-# In[9]:
+# In[ ]:
 
 
 def run_permit_price_target_scenarios():

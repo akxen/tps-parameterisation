@@ -666,10 +666,10 @@ if __name__ == '__main__':
 
     plot = PlotHandler(data_director, scenarios_directory, results_directory, output_directory)
     plot.plot_price_target_results('1.571')
-    # plot.plot_price_target_results('1.047')
+    plot.plot_price_target_results('1.047')
 
-    # plot.plot_weighted_rnn_average_price('1.571')
-    # plot.plot_weighted_rnn_average_price('1.047')
-    #
-    # plot.plot_srmc_comparison('1.571')
-    # plot.plot_srmc_comparison('1.047')
+    plot.plot_weighted_rnn_average_price('1.571')
+    plot.plot_weighted_rnn_average_price('1.047')
+
+    plot.plot_srmc_comparison('1.571')
+    plot.plot_srmc_comparison('1.047')

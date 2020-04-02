@@ -1283,13 +1283,6 @@ def run_weighted_rrn_price_target_scenarios():
     model_bau = create_model(use_pu=True, variable_baseline=False, objective_type='feasibility')
     model_bau.PHI = 1.5
        
-    # BAU model results
-    print('Solving BAU scenario')
-    res_bau = opt.solve(model_bau, keepfiles=False, tee=True, warmstart=True)    
-    model_bau.solutions.store_to(res_bau)
-    bau_weighted_rnn_price = model_bau.WEIGHTED_RRN_PRICE.expr()
-    print('BAU weighted RNN price: {0}'.format(bau_weighted_rnn_price))
-
     # Instantiate model object
     model = create_model(use_pu=True, variable_baseline=True, objective_type='weighted_rrn_price_target')
     opt.options['mip tolerances absmipgap'] = 1e-3
@@ -1297,6 +1290,17 @@ def run_weighted_rrn_price_target_scenarios():
     # Voltage angle difference limits
     for angle_limit in [pi/2, pi/3]:
 #     for angle_limit in [pi/2]:
+
+        # Update voltage angle difference limit
+        model_bau.THETA_DELTA = angle_limit
+        model.THETA_DELTA = angle_limit
+        
+        # BAU model results
+        print('Solving BAU scenario')
+        res_bau = opt.solve(model_bau, keepfiles=False, tee=True, warmstart=True)    
+        model_bau.solutions.store_to(res_bau)
+        bau_weighted_rnn_price = model_bau.WEIGHTED_RRN_PRICE.expr()
+        print('BAU weighted RNN price: {0}'.format(bau_weighted_rnn_price))
         
         # Update voltage angle difference limit
         model.THETA_DELTA = angle_limit

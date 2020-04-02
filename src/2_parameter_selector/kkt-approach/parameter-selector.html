@@ -14461,13 +14461,6 @@ div#notebook {
     <span class="n">model_bau</span> <span class="o">=</span> <span class="n">create_model</span><span class="p">(</span><span class="n">use_pu</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">variable_baseline</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">objective_type</span><span class="o">=</span><span class="s1">&#39;feasibility&#39;</span><span class="p">)</span>
     <span class="n">model_bau</span><span class="o">.</span><span class="n">PHI</span> <span class="o">=</span> <span class="mf">1.5</span>
        
-    <span class="c1"># BAU model results</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Solving BAU scenario&#39;</span><span class="p">)</span>
-    <span class="n">res_bau</span> <span class="o">=</span> <span class="n">opt</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">model_bau</span><span class="p">,</span> <span class="n">keepfiles</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">tee</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">warmstart</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>    
-    <span class="n">model_bau</span><span class="o">.</span><span class="n">solutions</span><span class="o">.</span><span class="n">store_to</span><span class="p">(</span><span class="n">res_bau</span><span class="p">)</span>
-    <span class="n">bau_weighted_rnn_price</span> <span class="o">=</span> <span class="n">model_bau</span><span class="o">.</span><span class="n">WEIGHTED_RRN_PRICE</span><span class="o">.</span><span class="n">expr</span><span class="p">()</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;BAU weighted RNN price: </span><span class="si">{0}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">bau_weighted_rnn_price</span><span class="p">))</span>
-
     <span class="c1"># Instantiate model object</span>
     <span class="n">model</span> <span class="o">=</span> <span class="n">create_model</span><span class="p">(</span><span class="n">use_pu</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">variable_baseline</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">objective_type</span><span class="o">=</span><span class="s1">&#39;weighted_rrn_price_target&#39;</span><span class="p">)</span>
     <span class="n">opt</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;mip tolerances absmipgap&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1e-3</span>
@@ -14475,6 +14468,17 @@ div#notebook {
     <span class="c1"># Voltage angle difference limits</span>
     <span class="k">for</span> <span class="n">angle_limit</span> <span class="ow">in</span> <span class="p">[</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="n">pi</span><span class="o">/</span><span class="mi">3</span><span class="p">]:</span>
 <span class="c1">#     for angle_limit in [pi/2]:</span>
+
+        <span class="c1"># Update voltage angle difference limit</span>
+        <span class="n">model_bau</span><span class="o">.</span><span class="n">THETA_DELTA</span> <span class="o">=</span> <span class="n">angle_limit</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">THETA_DELTA</span> <span class="o">=</span> <span class="n">angle_limit</span>
+        
+        <span class="c1"># BAU model results</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Solving BAU scenario&#39;</span><span class="p">)</span>
+        <span class="n">res_bau</span> <span class="o">=</span> <span class="n">opt</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">model_bau</span><span class="p">,</span> <span class="n">keepfiles</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">tee</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">warmstart</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>    
+        <span class="n">model_bau</span><span class="o">.</span><span class="n">solutions</span><span class="o">.</span><span class="n">store_to</span><span class="p">(</span><span class="n">res_bau</span><span class="p">)</span>
+        <span class="n">bau_weighted_rnn_price</span> <span class="o">=</span> <span class="n">model_bau</span><span class="o">.</span><span class="n">WEIGHTED_RRN_PRICE</span><span class="o">.</span><span class="n">expr</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;BAU weighted RNN price: </span><span class="si">{0}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">bau_weighted_rnn_price</span><span class="p">))</span>
         
         <span class="c1"># Update voltage angle difference limit</span>
         <span class="n">model</span><span class="o">.</span><span class="n">THETA_DELTA</span> <span class="o">=</span> <span class="n">angle_limit</span>

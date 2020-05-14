@@ -1,4 +1,4 @@
-
+#!/usr/bin/env python
 # coding: utf-8
 
 # # Parameter Selector
@@ -6,7 +6,7 @@
 # 
 # ## Import packages
 
-# In[1]:
+# In[ ]:
 
 
 import os
@@ -28,7 +28,7 @@ np.random.seed(10)
 # ## Paths
 # Paths to relevant data and output directories.
 
-# In[2]:
+# In[ ]:
 
 
 class DirectoryPaths(object):
@@ -45,7 +45,7 @@ paths = DirectoryPaths()
 # ## Model data
 # Import raw model data.
 
-# In[3]:
+# In[ ]:
 
 
 class RawData(object):
@@ -94,7 +94,7 @@ raw_data = RawData()
 # ## Organise model data
 # Format and organise data.
 
-# In[4]:
+# In[ ]:
 
 
 class OrganiseData(object):
@@ -342,7 +342,7 @@ model_data = OrganiseData()
 
 # ## Model
 
-# In[5]:
+# In[ ]:
 
 
 def create_model(use_pu=None, variable_baseline=None, objective_type=None):
@@ -521,7 +521,7 @@ def create_model(use_pu=None, variable_baseline=None, objective_type=None):
     model.E = Param(model.OMEGA_G, rule=E_RULE)
 
     # Max voltage angle difference between connected nodes
-    model.THETA_DELTA = Param(initialize=float(pi / 2))
+    model.THETA_DELTA = Param(initialize=float(pi / 2), mutable=True)
 
     # HVDC incidence matrix
     hvdc_incidence_matrix = model_data.get_HVDC_incidence_matrix()
@@ -1170,7 +1170,7 @@ def create_model(use_pu=None, variable_baseline=None, objective_type=None):
 
 # Setup solver.
 
-# In[6]:
+# In[ ]:
 
 
 # Setup solver
@@ -1180,9 +1180,28 @@ solver_io = 'mps'
 opt = SolverFactory(solver, solver_io=solver_io)
 
 
+# Function to check if case should be processed.
+
+# In[ ]:
+
+
+def check_processed(filename, overwrite=True):
+    """Check if file has been processed"""
+    
+    # Files that have already been processed
+    files = os.listdir(paths.output_dir)
+    
+    if (filename in files) and not overwrite:
+        # No need to process file
+        return False
+    else:
+        # Need to process the file
+        return True
+
+
 # Solve model for different emissions intensity baselines.
 
-# In[7]:
+# In[ ]:
 
 
 def run_emissions_intensity_baseline_scenarios():
@@ -1193,49 +1212,68 @@ def run_emissions_intensity_baseline_scenarios():
     opt.options['mip tolerances absmipgap'] = 1e-6
     opt.options['emphasis mip'] = 1 # Emphasise feasibility
 
-    # Solve model for different PHI scenarios
-    for baseline in np.linspace(1.1, 0.9, 41):
-        # Dictionary in which to store results
-        fixed_baseline_results = dict()
+    # Voltage angle difference limits
+    for angle_limit in [pi/2, pi/3]:
+#     for angle_limit in [pi/2]:
+        
+        # Update voltage angle difference limit
+        model.THETA_DELTA = angle_limit
+        
+        # Solve model for different PHI scenarios
+        for baseline in np.linspace(1.1, 0.9, 41):
+#         for baseline in [1.1]:        
 
-        # Update baseline
-        print('Emissions intensity baseline: {0} tCO2/MWh'.format(baseline))
-        model.PHI = baseline
+            # Dictionary in which to store results
+            fixed_baseline_results = dict()
 
-        # Model results
-        res = opt.solve(model, keepfiles=False, tee=True, warmstart=True)
-        model.solutions.store_to(res)
+            # Update baseline
+            print('Emissions intensity baseline: {0} tCO2/MWh'.format(baseline))
+            model.PHI = baseline
+            
+            # Filename corresponding to case
+            filename = f'fixed_baseline_results_phi_{model.PHI.value:.3f}_angle_limit_{angle_limit:.3f}.pickle'            
+            
+            # Check if case should be processed
+            process_case = check_processed(filename, overwrite=False)
+            if process_case:
+                pass
+            else:
+                print(f'Already processed. Skipping: {filename}')
+                continue
 
-        # Place results in DataFrame
-        try:
-            df = pd.DataFrame(res['Solution'][0])
-            fixed_baseline_results = {'FIXED_BASELINE': model.PHI.value, 'results': df}
-        except:
-            fixed_baseline_results = {'FIXED_BASELINE': model.PHI.value, 'results': 'infeasible'}
-            print('Baseline {0} is infeasible'.format(model.PHI.value))   
+            # Model results
+            res = opt.solve(model, keepfiles=False, tee=True, warmstart=True)
+            model.solutions.store_to(res)
 
-        # Try to print results
-        try:
-            print(model.AVERAGE_ELECTRICITY_PRICE.display())
-        except:
-            pass
+            # Place results in DataFrame
+            try:
+                df = pd.DataFrame(res['Solution'][0])
+                fixed_baseline_results = {'FIXED_BASELINE': model.PHI.value, 'results': df}
+            except:
+                fixed_baseline_results = {'FIXED_BASELINE': model.PHI.value, 'results': 'infeasible'}
+                print('Baseline {0} is infeasible'.format(model.PHI.value))   
 
-        try:
-            print(model.tau.display())
-        except:
-            pass
+            # Try to print results
+            try:
+                print(model.AVERAGE_ELECTRICITY_PRICE.display())
+            except:
+                pass
 
-        # Save results
-        filename = 'fixed_baseline_results_phi_{0:.3f}.pickle'.format(model.PHI.value)
-        with open(os.path.join(paths.output_dir, filename), 'wb') as f:
-            pickle.dump(fixed_baseline_results, f)
+            try:
+                print(model.tau.display())
+            except:
+                pass
+
+            # Save results
+            with open(os.path.join(paths.output_dir, filename), 'wb') as f:
+                pickle.dump(fixed_baseline_results, f)
             
 run_emissions_intensity_baseline_scenarios()
 
 
 # Identify baseline that targets wholesale electricity price
 
-# In[8]:
+# In[ ]:
 
 
 def run_weighted_rrn_price_target_scenarios():
@@ -1245,63 +1283,87 @@ def run_weighted_rrn_price_target_scenarios():
     model_bau = create_model(use_pu=True, variable_baseline=False, objective_type='feasibility')
     model_bau.PHI = 1.5
        
-    # BAU model results
-    print('Solving BAU scenario')
-    res_bau = opt.solve(model_bau, keepfiles=False, tee=True, warmstart=True)    
-    model_bau.solutions.store_to(res_bau)
-    bau_weighted_rnn_price = model_bau.WEIGHTED_RRN_PRICE.expr()
-    print('BAU weighted RNN price: {0}'.format(bau_weighted_rnn_price))
-
     # Instantiate model object
     model = create_model(use_pu=True, variable_baseline=True, objective_type='weighted_rrn_price_target')
     opt.options['mip tolerances absmipgap'] = 1e-3
 
-    # Weighted RNN price target as a multiple of BAU weighted RNN price
-    for price_multiplier in [1.1, 1.2, 1.3, 1.4, 0.8]:
-        # Update price target
-        model.WEIGHTED_RRN_PRICE_TARGET = price_multiplier * bau_weighted_rnn_price
-        print('Target price input: {}'.format(price_multiplier * bau_weighted_rnn_price))
+    # Voltage angle difference limits
+    for angle_limit in [pi/2, pi/3]:
+#     for angle_limit in [pi/2]:
 
-        # Model results
-        res = opt.solve(model, keepfiles=False, tee=True, warmstart=True)
-        model.solutions.store_to(res)
+        # Update voltage angle difference limit
+        model_bau.THETA_DELTA = angle_limit
+        model.THETA_DELTA = angle_limit
+        
+        # BAU model results
+        print('Solving BAU scenario')
+        res_bau = opt.solve(model_bau, keepfiles=False, tee=True, warmstart=True)    
+        model_bau.solutions.store_to(res_bau)
+        bau_weighted_rnn_price = model_bau.WEIGHTED_RRN_PRICE.expr()
+        print('BAU weighted RNN price: {0}'.format(bau_weighted_rnn_price))
+        
+        # Update voltage angle difference limit
+        model.THETA_DELTA = angle_limit
+    
+        # Weighted RNN price target as a multiple of BAU weighted RNN price
+        for price_multiplier in [1.1, 1.2, 1.3, 1.4, 0.8]:
+#         for price_multiplier in [1.1]:
+        
+            # Filename corresponding to case
+            filename = f'weighted_rrn_price_target_{price_multiplier:.3f}_angle_limit_{angle_limit:.3f}.pickle'
+        
+            # Check if case should be processed
+            process_case = check_processed(filename, overwrite=False)
+            if process_case:
+                pass
+            else:
+                print(f'Already processed. Skipping: {filename}')
+                continue
+        
+        
+            # Update price target
+            model.WEIGHTED_RRN_PRICE_TARGET = price_multiplier * bau_weighted_rnn_price
+            print('Target price input: {}'.format(price_multiplier * bau_weighted_rnn_price))
 
-        # Place results in DataFrame
-        try:
-            df = pd.DataFrame(res['Solution'][0])
-            price_target_results = {'WEIGHTED_RRN_PRICE_TARGET': model.WEIGHTED_RRN_PRICE_TARGET.value,
-                                    'WEIGHTED_RRN_PRICE_TARGET_BAU_MULTIPLE': price_multiplier,
-                                    'results': df,
-                                    'PHI_DISCRETE': model.PHI_DISCRETE.expr()}
-        except:
-            price_target_results = {'WEIGHTED_RRN_PRICE_TARGET': model.WEIGHTED_RRN_PRICE_TARGET.value,
-                                    'results': 'infeasible'}
-            print('Weighted RNN price target {0} is infeasible'.format(model.WEIGHTED_RRN_PRICE_TARGET.value))   
+            # Model results
+            res = opt.solve(model, keepfiles=False, tee=True, warmstart=True)
+            model.solutions.store_to(res)
 
-        # Try to print results
-        try:
-            print(model.WEIGHTED_RRN_PRICE.display())
-        except:
-            pass
+            # Place results in DataFrame
+            try:
+                df = pd.DataFrame(res['Solution'][0])
+                price_target_results = {'WEIGHTED_RRN_PRICE_TARGET': model.WEIGHTED_RRN_PRICE_TARGET.value,
+                                        'WEIGHTED_RRN_PRICE_TARGET_BAU_MULTIPLE': price_multiplier,
+                                        'results': df,
+                                        'PHI_DISCRETE': model.PHI_DISCRETE.expr()}
+            except:
+                price_target_results = {'WEIGHTED_RRN_PRICE_TARGET': model.WEIGHTED_RRN_PRICE_TARGET.value,
+                                        'results': 'infeasible'}
+                print('Weighted RNN price target {0} is infeasible'.format(model.WEIGHTED_RRN_PRICE_TARGET.value))   
 
-        try:
-            print(model.PHI_DISCRETE.display())
-        except:
-            pass
+            # Try to print results
+            try:
+                print(model.WEIGHTED_RRN_PRICE.display())
+            except:
+                pass
 
-        print(model.tau.display())
+            try:
+                print(model.PHI_DISCRETE.display())
+            except:
+                pass
 
-        # Save results
-        filename = 'weighted_rrn_price_target_{0:.3f}.pickle'.format(price_multiplier)
-        with open(os.path.join(paths.output_dir, filename), 'wb') as f:
-            pickle.dump(price_target_results, f)
+            print(model.tau.display())
+
+            # Save results
+            with open(os.path.join(paths.output_dir, filename), 'wb') as f:
+                pickle.dump(price_target_results, f)
            
 run_weighted_rrn_price_target_scenarios()
 
 
 # Identify baseline that targets equilibrium permit price
 
-# In[9]:
+# In[ ]:
 
 
 def run_permit_price_target_scenarios():
@@ -1311,37 +1373,58 @@ def run_permit_price_target_scenarios():
     model = create_model(use_pu=True, variable_baseline=True, objective_type='permit_price_target')
     opt.options['mip tolerances absmipgap'] = 1e-3
 
-    for permit_price in [25/100, 50/100, 75/100, 100/100]:
-        # Set permit price target
-        model.PERMIT_PRICE_TARGET = permit_price
+    # Voltage angle difference limits
+    for angle_limit in [pi/2, pi/3]:
+#     for angle_limit in [pi/2]:
+        
+        # Update voltage angle difference limit
+        model.THETA_DELTA = angle_limit
+        
+        for permit_price in [25/100, 50/100, 75/100, 100/100]:
+#         for permit_price in [25/100]:
+        
+            # Filename
+            filename = f'permit_price_target_{permit_price:.3f}_angle_limit_{angle_limit:.3f}.pickle'
 
-        # Model results
-        res = opt.solve(model, keepfiles=False, tee=True, warmstart=True)
-        model.solutions.store_to(res)
+            # Check if case should be processed
+            process_case = check_processed(filename, overwrite=False)
+            if process_case:
+                pass
+            else:
+                print(f'Already processed. Skipping: {filename}')
+                continue
+        
+        
+            # Set permit price target
+            model.PERMIT_PRICE_TARGET = permit_price
 
-        # Place results in DataFrame
-        try:
-            df = pd.DataFrame(res['Solution'][0])
-            permit_price_target_results = {'PERMIT_PRICE_TARGET': permit_price,
-                                           'results': df,
-                                           'PHI_DISCRETE': model.PHI_DISCRETE.expr()}
-        except:
-            permit_price_target_results = {'PERMIT_PRICE_TARGET': permit_price,
-                                           'results': 'infeasible'}
-            print('Permit price target {0} is infeasible'.format(permit_price))
+            # Model results
+            res = opt.solve(model, keepfiles=False, tee=True, warmstart=True)
+            model.solutions.store_to(res)
 
-        # Try to print results
-        try:
-            print(model.PHI_DISCRETE.display())
-        except:
-            pass
+            # Place results in DataFrame
+            try:
+                df = pd.DataFrame(res['Solution'][0])
+                permit_price_target_results = {'PERMIT_PRICE_TARGET': permit_price,
+                                               'results': df,
+                                               'PHI_DISCRETE': model.PHI_DISCRETE.expr()}
+            except:
+                permit_price_target_results = {'PERMIT_PRICE_TARGET': permit_price,
+                                               'results': 'infeasible'}
+                print('Permit price target {0} is infeasible'.format(permit_price))
 
-        print(model.tau.display())
+            # Try to print results
+            try:
+                print(model.PHI_DISCRETE.display())
+            except:
+                pass
 
-        # Save results
-        filename = 'permit_price_target_{0:.3f}.pickle'.format(permit_price)
-        with open(os.path.join(paths.output_dir, filename), 'wb') as f:
-            pickle.dump(permit_price_target_results, f)
-            
+            print(model.tau.display())
+
+            # Save results
+
+            with open(os.path.join(paths.output_dir, filename), 'wb') as f:
+                pickle.dump(permit_price_target_results, f)
+
 run_permit_price_target_scenarios()
 

@@ -280,7 +280,7 @@ class PlotHandler:
 
         # Baselines for given weighted RRN price target
         ax1.scatter(df_1['PHI_DISCRETE'], df_1['AVERAGE_PRICE_BAU_MULTIPLE'],
-                    color='red', marker='+', zorder=3)
+                    color='#e81526', marker='+', zorder=3, alpha=0.8)
 
         # Horizontal lines denoting price targets
         for index, row in df_1.iterrows():
@@ -313,10 +313,10 @@ class PlotHandler:
 
         # Weighted RRN prices and their corresponding price targets
         ax2.scatter(df_1['WEIGHTED_RRN_PRICE_TARGET_BAU_MULTIPLE'], df_1['AVERAGE_PRICE_BAU_MULTIPLE'], marker='+',
-                    color='r')
+                    color='#e81526', alpha=0.8)
 
         # Straight line with slope = 1
-        ax2.plot([0.8, 1.45], [0.8, 1.45], linestyle=':', linewidth=0.8, color='black')
+        ax2.plot([0.8, 1.45], [0.8, 1.45], linestyle=':', linewidth=0.8, color='black', alpha=0.8)
 
         # Set axis limits
         ax2.set_ylim(0.75, 1.6)
@@ -383,10 +383,11 @@ class PlotHandler:
         # Difference between permit price and target
         # ------------------------------------------
         ax4.get_shared_y_axes().join(ax4, ax3)
-        ax4.scatter(df_2.reset_index()['PERMIT_PRICE_TARGET'].mul(100), df_2['tau'], marker='2', color='blue')
+        ax4.scatter(df_2.reset_index()['PERMIT_PRICE_TARGET'].mul(100), df_2['tau'], marker='2', color='blue',
+                    alpha=0.8)
 
         # Line with slope = 1
-        ax4.plot([0, 110], [0, 110], linestyle=':', linewidth=0.8, color='black')
+        ax4.plot([0, 110], [0, 110], linestyle=':', linewidth=0.8, color='black', alpha=0.8)
 
         # Format labels
         ax4.set_ylabel('Permit price\n(\$/tCO$_{2}$)', fontsize=fontsize, labelpad=0.5)
@@ -445,7 +446,7 @@ class PlotHandler:
                     s=10)
 
         # Line with slope = 1
-        ax1.plot([0.92, 1.57], [0.92, 1.57], linestyle=':', color='k')
+        ax1.plot([0.92, 1.57], [0.92, 1.57], linestyle=':', color='k', alpha=0.8)
 
         # Axes labels
         ax1.set_xlabel('Average price relative to BAU', fontsize=fontsize)
@@ -630,7 +631,8 @@ class PlotHandler:
          .pivot(index='FIXED_BASELINE',
                 columns='FUEL_TYPE',
                 values='energy_output')[['Black coal', 'Brown coal', 'Natural Gas (Pipeline)']]
-         .plot(logy=True, color=s, legend=False, marker='o', markersize=1.3, linewidth=0.95, ax=ax2))
+         .plot(logy=True, color=s, legend=False, marker="$\u25EF$", markeredgewidth=0.2, markersize=2.5, linewidth=0.8,
+               ax=ax2, alpha=0.8))
 
         # Construct legend
         ax2.legend(['Black coal', 'Brown coal', 'Natural gas'], fontsize=labelsize)
@@ -659,12 +661,12 @@ class PlotHandler:
 
 if __name__ == '__main__':
     # Directories
-    data_director = os.path.join(os.path.curdir, os.path.pardir, os.path.pardir, 'data')
+    data_directory = os.path.join(os.path.curdir, os.path.pardir, os.path.pardir, 'data')
     scenarios_directory = os.path.join(os.path.curdir, os.path.pardir, '1_create_scenarios', 'output')
     results_directory = os.path.join(os.path.curdir, os.path.pardir, '3_process_results', 'output', 'tmp')
     output_directory = os.path.join(os.path.curdir, 'output')
 
-    plot = PlotHandler(data_director, scenarios_directory, results_directory, output_directory)
+    plot = PlotHandler(data_directory, scenarios_directory, results_directory, output_directory)
     plot.plot_price_target_results('1.571')
     plot.plot_price_target_results('1.047')
 

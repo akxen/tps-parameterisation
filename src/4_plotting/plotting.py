@@ -259,15 +259,8 @@ class PlotHandler:
         df_2['tau'] = df_2['tau'].mul(100)
 
         # Initialise figure
-        # -----------------
-        fig = plt.figure()
-        ax1 = plt.axes([0.09, 0.62, 0.4, 0.36])  # Average price series
-        ax2 = plt.axes([0.58, 0.62, 0.4, 0.36])  # Average price and target price error
-        ax3 = plt.axes([0.09, 0.12, 0.4, 0.36])  # Permit price series
-        ax4 = plt.axes([0.58, 0.12, 0.4, 0.36])  # Permit price and target error
+        fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(nrows=2, ncols=2)
 
-        # Average wholesale prices
-        # ------------------------
         # Average price for each fixed baseline scenario
         ax1.plot(df_average_prices.loc['NATIONAL'].div(bau_price).index,
                  df_average_prices.loc['NATIONAL'].div(bau_price).values,
@@ -297,7 +290,7 @@ class PlotHandler:
 
         # Format axes
         ax1.set_ylabel('Average price \n relative to BAU', fontsize=fontsize)
-        ax1.set_xlabel('(a) \n Emissions intensity baseline (tCO$_{2}$/MWh)', fontsize=fontsize)
+        ax1.set_xlabel('Emissions intensity baseline (tCO$_{2}$/MWh)\n(a)', fontsize=fontsize)
 
         # Format ticks
         ax1.minorticks_on()
@@ -306,10 +299,9 @@ class PlotHandler:
         ax1.tick_params(axis='x', labelsize=labelsize)
         ax1.tick_params(axis='y', labelsize=labelsize)
 
-        # Difference between target and outcome - weighted RRN prices
-        # -----------------------------------------------------------
-        # Share common y-axis
-        ax2.get_shared_y_axes().join(ax2, ax1)
+        # Set axis limits
+        ax1.set_ylim(0.75, 1.6)
+        ax1.set_xlim(0.89, 1.11)
 
         # Weighted RRN prices and their corresponding price targets
         ax2.scatter(df_1['WEIGHTED_RRN_PRICE_TARGET_BAU_MULTIPLE'], df_1['AVERAGE_PRICE_BAU_MULTIPLE'], marker='+',
@@ -323,7 +315,7 @@ class PlotHandler:
         ax2.set_xlim(0.75, 1.5)
 
         # Set axes labels
-        ax2.set_xlabel('(b)\nTarget price relative to BAU', fontsize=fontsize)
+        ax2.set_xlabel('Target price relative to BAU\n(b)', fontsize=fontsize)
         ax2.set_ylabel('Average price\nrelative to BAU', fontsize=fontsize)
 
         # Format ticks
@@ -346,8 +338,7 @@ class PlotHandler:
         ax2.tick_params(axis='y', labelsize=labelsize)
 
         # Permit price profile
-        # --------------------
-        ax3.get_shared_x_axes().join(ax3, ax1)
+        ax1.set_xlim(0.89, 1.11)
 
         for index, row in df_2.iterrows():
             ax3.plot([0.9, 1.1], [index * 100, index * 100], linestyle=':', linewidth=0.5, color='k')
@@ -367,7 +358,7 @@ class PlotHandler:
 
         # Set axes labels
         ax3.set_ylabel('Permit price \n (\$/tCO$_{2}$)', fontsize=fontsize)
-        ax3.set_xlabel('(c) \n Emissions intensity baseline (tCO$_{2}$/MWh)', fontsize=fontsize)
+        ax3.set_xlabel('Emissions intensity baseline (tCO$_{2}$/MWh)\n(c)', fontsize=fontsize)
 
         # Format ticks
         ax3.minorticks_on()
@@ -381,7 +372,6 @@ class PlotHandler:
         ax3.text(1.077, 25.5, r'$\hat{\tau} = 25$', fontsize=fontsize - 4)
 
         # Difference between permit price and target
-        # ------------------------------------------
         ax4.get_shared_y_axes().join(ax4, ax3)
         ax4.scatter(df_2.reset_index()['PERMIT_PRICE_TARGET'].mul(100), df_2['tau'], marker='2', color='blue',
                     alpha=0.8)
@@ -391,7 +381,7 @@ class PlotHandler:
 
         # Format labels
         ax4.set_ylabel('Permit price\n(\$/tCO$_{2}$)', fontsize=fontsize, labelpad=0.5)
-        ax4.set_xlabel('(d)\nTarget permit price (\$/tCO$_{2}$)', fontsize=fontsize)
+        ax4.set_xlabel('Target permit price (\$/tCO$_{2}$)\n(d)', fontsize=fontsize)
 
         # Format ticks
         ax4.minorticks_on()
@@ -402,7 +392,8 @@ class PlotHandler:
         ax4.set_xlim(-2.5, 120)
 
         # Set figure size
-        fig.set_size_inches(7.22433, 3.48761 + 1)
+        fig.set_size_inches(6.45, 6.45/1.4)
+        fig.subplots_adjust(left=0.1, bottom=0.125, right=0.98, top=0.985, wspace=0.25, hspace=0.33)
         filename = f'target_prices_{int(float(angle_limit)*1000)}'
         fig.savefig(os.path.join(self.output_dir, 'figures', 'manuscript', f'{filename}.pdf'))
         fig.savefig(os.path.join(self.output_dir, 'figures', 'manuscript', f'{filename}.png'), dpi=300)
@@ -458,8 +449,8 @@ class PlotHandler:
         ax1.tick_params(axis='y', labelsize=labelsize)
 
         # Set figure size
-        fig.set_size_inches(7.22433 / 2, (7.22433 / 2) / 1.61803398875)
-        fig.subplots_adjust(left=0.17, bottom=0.18, right=0.97, top=0.97)
+        fig.set_size_inches(2.9, 2.9 / 1.7)
+        fig.subplots_adjust(left=0.22, bottom=0.23, right=0.97, top=0.97)
 
         # Save figure
         filename = f'weighted_rrn_prices_check_{int(float(angle_limit)*1000)}'
@@ -585,12 +576,8 @@ class PlotHandler:
         fuel_types = ['Black coal', 'Brown coal', 'Natural Gas (Pipeline)']
         means, weighted_means, max_srmcs, min_srmcs, std_srmcs = self.get_srmc_comparison(df_tau, self.df_g, fuel_types)
 
-        # SRMC ranges for different generating technologies
-        # -------------------------------------------------
         # Initialise figure
-        fig = plt.figure()
-        ax1 = plt.axes([0.065, 0.18, 0.41, 0.8])  # Average price series
-        ax2 = plt.axes([0.58, 0.18, 0.41, 0.8])  # Average price and target price error
+        fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2)
 
         # Colours associated with each generating technology
         s = pd.Series(['#0071b2', '#ce0037', '#039642'], index=['Black coal', 'Brown coal', 'Natural Gas (Pipeline)'])
@@ -609,7 +596,7 @@ class PlotHandler:
                          facecolor='#ce0037', alpha=0.5)
 
         # Axes labels
-        ax1.set_xlabel('(a)\nEmissions intensity baseline (tCO$_{2}$/MWh)', fontsize=fontsize)
+        ax1.set_xlabel('Emissions intensity baseline (tCO$_{2}$/MWh)\n(a)', fontsize=fontsize)
         ax1.set_ylabel('SRMC (\$/MWh)', labelpad=-0.1, fontsize=fontsize)
 
         # Format tick labels
@@ -619,10 +606,7 @@ class PlotHandler:
 
         # Set axes limits
         ax1.set_xlim(0.9, 1.1)
-        # ax1.set_ylim(0, 120)
 
-        # Change in output
-        # ----------------
         # Plot energy output for different technologies
         (pd.merge(df_generator_output, self.df_g[['NEM_REGION', 'FUEL_TYPE', 'FUEL_CAT']],
                   how='left', left_on='DUID', right_index=True)
@@ -638,7 +622,7 @@ class PlotHandler:
         ax2.legend(['Black coal', 'Brown coal', 'Natural gas'], fontsize=labelsize)
 
         # Format axes labels
-        ax2.set_xlabel('(b)\nEmissions intensity baseline (tCO$_{2}$/MWh)', fontsize=fontsize)
+        ax2.set_xlabel('Emissions intensity baseline (tCO$_{2}$/MWh)\n(b)', fontsize=fontsize)
         ax2.set_ylabel('Energy output (MWh)', fontsize=fontsize)
 
         # Format ticks
@@ -650,8 +634,8 @@ class PlotHandler:
         ax2.xaxis.set_major_locator(majorLocator)
 
         # Format figure size
-        fig.set_size_inches(7.22433, (7.22433 / 1.61803398875) / 1.5)
-        fig.subplots_adjust(left=0.125, bottom=0.175, right=0.955, top=0.905)
+        fig.set_size_inches(6.45, 6.45 / 2.4)
+        fig.subplots_adjust(left=0.07, bottom=0.2, right=0.99, top=0.99, wspace=0.22)
 
         # Save figure
         filename = f'srmc_output_{int(float(angle_limit)*1000)}'

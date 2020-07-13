@@ -5,6 +5,7 @@ import pickle
 
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 
 from matplotlib.ticker import MultipleLocator, FormatStrFormatter
 
@@ -214,8 +215,8 @@ class PlotHandler:
     def plot_price_target_results(self, angle_limit):
         """Show price targets"""
 
-        fontsize = 9
-        labelsize = 8
+        fontsize = 8
+        labelsize = 7
 
         # Load fixed baseline results
         df_fixed_baseline = self.load_results(f'df_fixed_baseline_angle_limit_{angle_limit}.pickle')
@@ -392,9 +393,9 @@ class PlotHandler:
         ax4.set_xlim(-2.5, 120)
 
         # Set figure size
-        fig.set_size_inches(6.45, 6.45/1.4)
+        fig.set_size_inches(6.45, 6.45 / 1.4)
         fig.subplots_adjust(left=0.1, bottom=0.125, right=0.98, top=0.985, wspace=0.25, hspace=0.33)
-        filename = f'target_prices_{int(float(angle_limit)*1000)}'
+        filename = f'target_prices_{int(float(angle_limit) * 1000)}'
         fig.savefig(os.path.join(self.output_dir, 'figures', 'manuscript', f'{filename}.pdf'))
         fig.savefig(os.path.join(self.output_dir, 'figures', 'manuscript', f'{filename}.png'), dpi=300)
 
@@ -423,8 +424,8 @@ class PlotHandler:
         # Average BAU price
         bau_price = df_average_prices.loc['NATIONAL'].iloc[-1]
 
-        fontsize = 9
-        labelsize = 8
+        fontsize = 8
+        labelsize = 7
 
         # Initialise figure
         fig, ax1 = plt.subplots()
@@ -453,7 +454,7 @@ class PlotHandler:
         fig.subplots_adjust(left=0.22, bottom=0.23, right=0.97, top=0.97)
 
         # Save figure
-        filename = f'weighted_rrn_prices_check_{int(float(angle_limit)*1000)}'
+        filename = f'weighted_rrn_prices_check_{int(float(angle_limit) * 1000)}'
         fig.savefig(os.path.join(self.output_dir, 'figures', 'manuscript', f'{filename}.pdf'))
         plt.show()
 
@@ -560,8 +561,8 @@ class PlotHandler:
     def plot_srmc_comparison(self, angle_limit):
         """Plot SRMC bands for each generator type as a function of baseline"""
 
-        fontsize = 9
-        labelsize = 8
+        fontsize = 8
+        labelsize = 7
 
         # Load fixed baseline results
         df_fixed_baseline = self.load_results(f'df_fixed_baseline_angle_limit_{angle_limit}.pickle')
@@ -607,6 +608,16 @@ class PlotHandler:
         # Set axes limits
         ax1.set_xlim(0.9, 1.1)
 
+        # Set major tick locator
+        ax1.xaxis.set_major_locator(MultipleLocator(0.05))
+
+        # Add legend
+        brown_coal_patch = mpatches.Patch(color='#ce0037', label='Brown coal', alpha=0.5)
+        black_coal_patch = mpatches.Patch(color='#112fd9', label='Black coal', alpha=0.5)
+        gas_patch = mpatches.Patch(color='#039642', label='Gas', alpha=0.5)
+        ax1.legend(handles=[black_coal_patch, brown_coal_patch, gas_patch], ncol=3, frameon=False,
+                   loc='upper center', bbox_to_anchor=(0.5, 1.09), fontsize=7)
+
         # Plot energy output for different technologies
         (pd.merge(df_generator_output, self.df_g[['NEM_REGION', 'FUEL_TYPE', 'FUEL_CAT']],
                   how='left', left_on='DUID', right_index=True)
@@ -630,15 +641,14 @@ class PlotHandler:
         ax2.tick_params(axis='x', labelsize=labelsize)
         ax2.tick_params(axis='y', labelsize=labelsize)
 
-        majorLocator = MultipleLocator(0.05)
-        ax2.xaxis.set_major_locator(majorLocator)
+        ax2.xaxis.set_major_locator(MultipleLocator(0.05))
 
         # Format figure size
         fig.set_size_inches(6.45, 6.45 / 2.4)
-        fig.subplots_adjust(left=0.07, bottom=0.2, right=0.99, top=0.99, wspace=0.22)
+        fig.subplots_adjust(left=0.07, bottom=0.2, right=0.99, top=0.95, wspace=0.22)
 
         # Save figure
-        filename = f'srmc_output_{int(float(angle_limit)*1000)}'
+        filename = f'srmc_output_{int(float(angle_limit) * 1000)}'
         fig.savefig(os.path.join(self.output_dir, 'figures', 'manuscript', f'{filename}.pdf'))
         plt.show()
 
@@ -651,11 +661,11 @@ if __name__ == '__main__':
     output_directory = os.path.join(os.path.curdir, 'output')
 
     plot = PlotHandler(data_directory, scenarios_directory, results_directory, output_directory)
-    plot.plot_price_target_results('1.571')
-    plot.plot_price_target_results('1.047')
+    # plot.plot_price_target_results('1.571')
+    # plot.plot_price_target_results('1.047')
 
-    plot.plot_weighted_rnn_average_price('1.571')
-    plot.plot_weighted_rnn_average_price('1.047')
+    # plot.plot_weighted_rnn_average_price('1.571')
+    # plot.plot_weighted_rnn_average_price('1.047')
 
     plot.plot_srmc_comparison('1.571')
-    plot.plot_srmc_comparison('1.047')
+    # plot.plot_srmc_comparison('1.047')

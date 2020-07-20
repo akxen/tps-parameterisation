@@ -8,6 +8,10 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 
 from matplotlib.ticker import MultipleLocator, FormatStrFormatter
+from matplotlib import rc
+
+# activate latex text rendering
+rc('text', usetex=True)
 
 
 class PlotHandler:
@@ -744,15 +748,15 @@ class PlotHandler:
                     linestyle=':', linewidth=0.5, color='k')
 
         # Add label to horizontal lines specifying average price target
-        ax.text(1.075, 1.405, '$\hat{\lambda} = 1.4$', fontsize=8)
-        ax.text(1.075, 1.305, '$\hat{\lambda} = 1.3$', fontsize=8)
-        ax.text(1.075, 1.205, '$\hat{\lambda} = 1.2$', fontsize=8)
-        ax.text(1.075, 1.105, '$\hat{\lambda} = 1.1$', fontsize=8)
-        ax.text(1.075, 0.805, '$\hat{\lambda} = 0.8$', fontsize=8)
+        ax.text(1.075, 1.405, '$\hat{\lambda} = 1.4$', fontsize=9, usetex=True)
+        ax.text(1.075, 1.305, '$\hat{\lambda} = 1.3$', fontsize=9, usetex=True)
+        ax.text(1.075, 1.205, '$\hat{\lambda} = 1.2$', fontsize=9, usetex=True)
+        ax.text(1.075, 1.105, '$\hat{\lambda} = 1.1$', fontsize=9, usetex=True)
+        ax.text(1.075, 0.805, '$\hat{\lambda} = 0.8$', fontsize=9, usetex=True)
 
         # Format axes
-        ax.set_ylabel('Average price relative to BAU')
-        ax.set_xlabel('Emissions intensity baseline (tCO$_{2}$/MWh)')
+        ax.set_ylabel('Average price relative to BAU', usetex=True)
+        ax.set_xlabel('Emissions intensity baseline (tCO$_{2}$/MWh)', usetex=True)
 
         # Format ticks
         ax.yaxis.set_major_locator(MultipleLocator(0.2))
@@ -766,12 +770,12 @@ class PlotHandler:
         ax.tick_params(axis='both', labelsize=9)
 
         # Set figure size
-        fig.set_size_inches(self.cm_to_in(11.5), self.cm_to_in(7.6))
-        fig.subplots_adjust(left=0.1, bottom=0.15, right=0.98, top=0.98)
+        fig.set_size_inches(self.cm_to_in(11.5), self.cm_to_in(7))
+        fig.subplots_adjust(left=0.11, bottom=0.15, right=0.98, top=0.98)
 
         filename = f'average_price_target_{int(float(angle_limit) * 1000)}'
-        fig.savefig(os.path.join(self.output_dir, 'figures', 'defense', f'{filename}.pdf'))
-        fig.savefig(os.path.join(self.output_dir, 'figures', 'defense', f'{filename}.png'), dpi=300)
+        fig.savefig(os.path.join(self.output_dir, 'figures', 'defense', f'{filename}.pdf'), transparent=True)
+        fig.savefig(os.path.join(self.output_dir, 'figures', 'defense', f'{filename}.png'), dpi=400, transparent=True)
 
         plt.show()
 
@@ -921,8 +925,8 @@ class PlotHandler:
         ax.set_ylim([-5, 140])
 
         # Set axes labels
-        ax.set_ylabel('Permit price (\$/tCO$_{2}$)')
-        ax.set_xlabel('Emissions intensity baseline (tCO$_{2}$/MWh)')
+        ax.set_ylabel('Permit price (\$/tCO$_{2}$)', usetex=True)
+        ax.set_xlabel('Emissions intensity baseline (tCO$_{2}$/MWh)', usetex=True)
 
         # Format ticks
         ax.yaxis.set_major_locator(MultipleLocator(20))
@@ -934,20 +938,22 @@ class PlotHandler:
         ax.tick_params(axis='both', labelsize=9)
         ax.xaxis.label.set_size(10)
         ax.yaxis.label.set_size(10)
+        # ax.ticklabel_format(useMathText=True)
+        # ax.xaxis.ticklabel_format(usetex=True)
 
         # Add permit price target labels to horizontal lines
-        ax.text(1.077, 100.5, r'$\hat{\tau} = 100$', fontsize=8)
-        ax.text(1.077, 75.5, r'$\hat{\tau} = 75$', fontsize=8)
-        ax.text(1.077, 50.5, r'$\hat{\tau} = 50$', fontsize=8)
-        ax.text(1.077, 25.5, r'$\hat{\tau} = 25$', fontsize=8)
+        ax.text(1.075, 100.5, r'$\hat{\tau} = 100$', fontsize=9, usetex=True)
+        ax.text(1.075, 75.5, r'$\hat{\tau} = 75$', fontsize=9, usetex=True)
+        ax.text(1.075, 50.5, r'$\hat{\tau} = 50$', fontsize=9, usetex=True)
+        ax.text(1.075, 25.5, r'$\hat{\tau} = 25$', fontsize=9, usetex=True)
 
         # Set figure size
-        fig.set_size_inches(self.cm_to_in(11.5), self.cm_to_in(7.6))
-        fig.subplots_adjust(left=0.11, bottom=0.15, right=0.98, top=0.97)
+        fig.set_size_inches(self.cm_to_in(11.5), self.cm_to_in(7))
+        fig.subplots_adjust(left=0.12, bottom=0.15, right=0.98, top=0.97)
 
         filename = f'permit_price_target_{int(float(angle_limit) * 1000)}'
-        fig.savefig(os.path.join(self.output_dir, 'figures', 'defense', f'{filename}.pdf'))
-        fig.savefig(os.path.join(self.output_dir, 'figures', 'defense', f'{filename}.png'), dpi=300)
+        fig.savefig(os.path.join(self.output_dir, 'figures', 'defense', f'{filename}.pdf'), transparent=True)
+        fig.savefig(os.path.join(self.output_dir, 'figures', 'defense', f'{filename}.png'), dpi=400, transparent=True)
 
         plt.show()
 
@@ -1103,15 +1109,15 @@ class PlotHandler:
                         facecolor='#ce0037', alpha=0.5)
 
         # Axes labels
-        ax.set_xlabel('Emissions intensity baseline (tCO$_{2}$/MWh)')
-        ax.set_ylabel('SRMC (\$/MWh)', labelpad=-0.1)
+        ax.set_xlabel('Emissions intensity baseline (tCO$_{2}$/MWh)', usetex=True)
+        ax.set_ylabel('SRMC (\$/MWh)', labelpad=-0.1, usetex=True)
 
         # Add legend
         brown_coal_patch = mpatches.Patch(color='#ce0037', label='Brown coal', alpha=0.5)
         black_coal_patch = mpatches.Patch(color='#112fd9', label='Black coal', alpha=0.5)
         gas_patch = mpatches.Patch(color='#039642', label='Gas', alpha=0.5)
         ax.legend(handles=[black_coal_patch, brown_coal_patch, gas_patch], ncol=3, frameon=False,
-                  loc='upper center', bbox_to_anchor=(0.5, 1.11), fontsize=9)
+                  loc='upper center', bbox_to_anchor=(0.5, 1.11), fontsize=8)
 
         # Format ticks
         ax.xaxis.set_major_locator(MultipleLocator(0.04))
@@ -1129,13 +1135,13 @@ class PlotHandler:
         ax.set_xlim(0.9, 1.1)
 
         # Format figure size
-        fig.set_size_inches(self.cm_to_in(11.5), self.cm_to_in(7.6))
-        fig.subplots_adjust(left=0.09, bottom=0.15, right=0.99, top=0.94)
+        fig.set_size_inches(self.cm_to_in(11.5), self.cm_to_in(7.2))
+        fig.subplots_adjust(left=0.11, bottom=0.17, right=0.99, top=0.94)
 
         # Save figure
         filename = f'srmc_impact_{int(float(angle_limit) * 1000)}'
-        fig.savefig(os.path.join(self.output_dir, 'figures', 'defense', f'{filename}.pdf'))
-        fig.savefig(os.path.join(self.output_dir, 'figures', 'defense', f'{filename}.png'), dpi=300)
+        fig.savefig(os.path.join(self.output_dir, 'figures', 'defense', f'{filename}.pdf'), transparent=True)
+        fig.savefig(os.path.join(self.output_dir, 'figures', 'defense', f'{filename}.png'), dpi=400, transparent=True)
         plt.show()
 
     def plot_generator_output_impact(self, angle_limit):
@@ -1185,12 +1191,12 @@ class PlotHandler:
         # .plot(logy=True, color=s, legend=False, marker='o', markersize=1.3, linewidth=0.95, ax=ax2))
 
         # Construct legend
-        ax.legend(['Black coal', 'Brown coal', 'Natural gas'], fontsize=8, frameon=False)
+        ax.legend(['Black coal', 'Brown coal', 'Natural gas'], fontsize=7.5, frameon=False)
 
         # Format axes labels
         ax.set_yscale('log')
-        ax.set_xlabel('Emissions intensity baseline (tCO$_{2}$/MWh)')
-        ax.set_ylabel('Energy output (MWh)')
+        ax.set_xlabel('Emissions intensity baseline (tCO$_{2}$/MWh)', usetex=True)
+        ax.set_ylabel('Energy output (MWh)', usetex=True)
 
         # Format ticks
         ax.xaxis.set_major_locator(MultipleLocator(0.05))
@@ -1202,13 +1208,13 @@ class PlotHandler:
         ax.tick_params(axis='both', labelsize=9)
 
         # Format figure size
-        fig.set_size_inches(self.cm_to_in(11.5), self.cm_to_in(7.6))
-        fig.subplots_adjust(left=0.125, bottom=0.175, right=0.955, top=0.905)
+        fig.set_size_inches(self.cm_to_in(11.5), self.cm_to_in(7.2))
+        fig.subplots_adjust(left=0.11, bottom=0.14, right=0.99, top=0.99)
 
         # Save figure
         filename = f'generator_output_impact_{int(float(angle_limit) * 1000)}'
-        fig.savefig(os.path.join(self.output_dir, 'figures', 'defense', f'{filename}.pdf'))
-        fig.savefig(os.path.join(self.output_dir, 'figures', 'defense', f'{filename}.png'), dpi=300)
+        fig.savefig(os.path.join(self.output_dir, 'figures', 'defense', f'{filename}.pdf'), transparent=True)
+        fig.savefig(os.path.join(self.output_dir, 'figures', 'defense', f'{filename}.png'), dpi=400, transparent=True)
         plt.show()
 
 
@@ -1219,21 +1225,18 @@ if __name__ == '__main__':
     results_directory = os.path.join(os.path.curdir, os.path.pardir, '3_process_results', 'output', 'tmp')
     output_directory = os.path.join(os.path.curdir, 'output')
 
+    params = {'mathtext.default': 'regular'}
+    plt.rcParams.update(params)
+
     # Object used to construct plots
     plot = PlotHandler(data_director, scenarios_directory, results_directory, output_directory)
 
     # Average price target
     plot.plot_average_price_target('1.571')
-    plot.plot_average_price_target_error('1.571')
     plot.plot_permit_price_target('1.571')
-    plot.plot_permit_price_target_error('1.571')
-    plot.plot_weighted_rnn_average_price_error('1.571')
     plot.plot_srmc_impact('1.571')
     plot.plot_generator_output_impact('1.571')
 
-    # Old
-    # plot.plot_price_target_results('1.571')
-    # plot.plot_price_target_results('1.047')
-    # plot.plot_weighted_rnn_average_price('1.047')
-    # plot.plot_srmc_comparison('1.571')
-    # plot.plot_srmc_comparison('1.047')
+    # plot.plot_average_price_target_error('1.571')
+    # plot.plot_permit_price_target_error('1.571')
+    # plot.plot_weighted_rnn_average_price_error('1.571')

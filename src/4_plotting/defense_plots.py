@@ -7,11 +7,16 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 
+import matplotlib
 from matplotlib.ticker import MultipleLocator, FormatStrFormatter
 from matplotlib import rc
 
 # activate latex text rendering
-rc('text', usetex=True)
+# rc('text', usetex=True)
+
+matplotlib.rcParams['font.family'] = 'sans-serif'
+matplotlib.rcParams['font.sans-serif'] = 'Roboto'
+matplotlib.rcParams['font.style'] = 'normal'
 
 
 class PlotHandler:
@@ -1209,7 +1214,7 @@ class PlotHandler:
 
         # Format figure size
         fig.set_size_inches(self.cm_to_in(11.5), self.cm_to_in(7.2))
-        fig.subplots_adjust(left=0.11, bottom=0.14, right=0.99, top=0.99)
+        fig.subplots_adjust(left=0.11, bottom=0.145, right=0.99, top=0.99)
 
         # Save figure
         filename = f'generator_output_impact_{int(float(angle_limit) * 1000)}'

@@ -14845,13 +14845,10 @@ a.anchor-link {
 <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]:</span>
     <span class="c1"># Create operating scenarios</span>
     <span class="n">df_clustered</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">create_scenarios</span><span class="p">(</span><span class="n">df</span><span class="o">=</span><span class="n">node_injections</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">,</span> <span class="n">max_iterations</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="mf">9e9</span><span class="p">),</span> <span class="n">stopping_tolerance</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-    
+       
     <span class="c1"># Save scenarios</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s1">_scenarios.pickle&#39;</span><span class="p">),</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">df_clustered</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
-    
-    <span class="c1"># Save as json</span>
-    <span class="n">df_clustered</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s1">_scenarios.json&#39;</span><span class="p">))</span>
 </pre></div>
 
      </div>

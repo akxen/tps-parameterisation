@@ -519,13 +519,10 @@ node_injections = get_node_injections(generators, nodes, dispatch, demand)
 for k in [1, 2]:
     # Create operating scenarios
     df_clustered, _ = create_scenarios(df=node_injections, k=k, max_iterations=int(9e9), stopping_tolerance=0)
-    
+       
     # Save scenarios
     with open(os.path.join(output_dir, f'{k}_scenarios.pickle'), 'wb') as f:
         pickle.dump(df_clustered, f)
-    
-    # Save as json
-    df_clustered.to_json(os.path.join(output_dir, f'{k}_scenarios.json'))
 
 
 # ## References

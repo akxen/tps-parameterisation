@@ -1,4 +1,4 @@
-
+#!/usr/bin/env python
 # coding: utf-8
 
 # # Scenario Construction
@@ -38,7 +38,8 @@ idx = pd.IndexSlice
 data_dir = os.path.join(os.path.curdir, os.path.pardir, os.path.pardir, 'data')
 
 # MMSDM historic demand and dispatch signals
-archive_dir = r'D:\nemweb\Reports\Data_Archive\MMSDM\zipped'
+# archive_dir = r'D:\nemweb\Reports\Data_Archive\MMSDM\zipped'
+archive_dir = '/media/compo/My Passport/nemweb/Reports/Data_Archive/MMSDM/zipped'
 
 # Location for output files
 output_dir = os.path.join(os.path.curdir, 'output')
@@ -50,10 +51,10 @@ output_dir = os.path.join(os.path.curdir, 'output')
 
 
 # Generator information
-df_g = pd.read_csv(os.path.join(data_dir, 'egrimod-nem-dataset-v1.3', 'akxen-egrimod-nem-dataset-4806603', 'generators', 'generators.csv'), index_col='DUID', dtype={'NODE': int})
+generators = pd.read_csv(os.path.join(data_dir, 'egrimod-nem-dataset', 'generators', 'generators.csv'), index_col='DUID', dtype={'NODE': int})
 
 # Network node information
-df_n = pd.read_csv(os.path.join(data_dir, 'egrimod-nem-dataset-v1.3', 'akxen-egrimod-nem-dataset-4806603', 'network', 'network_nodes.csv'), index_col='NODE_ID')
+nodes = pd.read_csv(os.path.join(data_dir, 'egrimod-nem-dataset', 'network', 'network_nodes.csv'), index_col='NODE_ID')
 
 
 # ## Extract data
@@ -156,28 +157,47 @@ def get_data(archive_path, table_name, extractor_function):
                 df = extractor_function(f)      
     return df
 
-# Historic demand and dispatch data
-demand = []
-dispatch = []
 
-for i in range(1, 13):
-    # Archive name and path from which data will be extracted
-    archive_name = 'MMSDM_2017_{0:02}.zip'.format(i)
-    archive_path = os.path.join(archive_dir, archive_name)
-
-    # Extract data
-    dispatch.append(get_data(archive_path, 'DISPATCH_UNIT_SCADA', dispatch_unit_scada))
-    demand.append(get_data(archive_path, 'TRADINGREGIONSUM', tradingregionsum))
-
-# Concatenate data from individual months into single DataFrames for load and dispatch
-df_demand = pd.concat(demand, sort=True) # Demand
-df_dispatch = pd.concat(dispatch, sort=True) # Dispatch
-
-# Fill missing values
-df_demand = df_demand.fillna(0)
+def get_historic_demand_and_dispatch(archive_dir):
+    """Get historic demand and dispatch
     
-# Resample to get average power output over 30min trading interval (instead of 5min) dispatch intervals
-df_dispatch = df_dispatch.resample('30min', label='right', closed='right').mean()
+    Parameters
+    ----------
+    archive_dir : str
+        Directory containing zipped MMSDM files
+    
+    Returns
+    -------
+    df_demand : pandas DataFrame
+        Historical demand for each NEM region
+    
+    df_dispatch : pandas DataFrame
+        Historical dispatch for each generator
+    """
+    
+    # Historic demand and dispatch data
+    demand, dispatch = [], []
+
+    for i in range(1, 13):
+        # Archive name and path from which data will be extracted
+        archive_name = 'MMSDM_2017_{0:02}.zip'.format(i)
+        archive_path = os.path.join(archive_dir, archive_name)
+
+        # Extract data
+        demand.append(get_data(archive_path, 'TRADINGREGIONSUM', tradingregionsum))
+        dispatch.append(get_data(archive_path, 'DISPATCH_UNIT_SCADA', dispatch_unit_scada))
+
+    # Concatenate data from individual months into single DataFrames for load and dispatch
+    df_demand = pd.concat(demand, sort=True) # Demand
+    df_dispatch = pd.concat(dispatch, sort=True) # Dispatch
+
+    # Fill missing values
+    df_demand = df_demand.fillna(0)
+
+    # Resample to get average power output over 30min trading interval (instead of 5min) dispatch intervals
+    df_dispatch = df_dispatch.resample('30min', label='right', closed='right').mean()
+    
+    return df_demand, df_dispatch
 
 
 # Re-index and format data:
@@ -190,43 +210,144 @@ df_dispatch = df_dispatch.resample('30min', label='right', closed='right').mean(
 # In[5]:
 
 
-# Intermittent generators
-mask_intermittent = df_g['FUEL_CAT'].isin(['Wind', 'Solar'])
-df_g[mask_intermittent]
+def get_intermittent_node_injections(generators, nodes, dispatch):
+    """Intermittent generator node injections
+    
+    Parameters
+    ----------
+    generators : pandas DataFrame
+        Generator information
+    
+    nodes : pandas DataFrame
+        Node information
+    
+    dispatch : pandas DataFrame
+        Dispatch at each node
+        
+    Returns
+    -------
+    intermittent : pandas DataFrame
+        Intermittent generation at each node
+    """
+    
+    # Intermittent generators
+    mask_intermittent = generators['FUEL_CAT'].isin(['Wind', 'Solar'])
+    generators[mask_intermittent]
 
-# Intermittent dispatch at each node
-df_intermittent = (df_dispatch
-                   .T
-                   .join(df_g.loc[mask_intermittent, 'NODE'], how='left')
-                   .groupby('NODE').sum()
-                   .reindex(df_n.index, fill_value=0))
-df_intermittent['level'] = 'intermittent'
-
-# Hydro generators
-mask_hydro = df_g['FUEL_CAT'].isin(['Hydro'])
-df_g[mask_hydro]
-
-# Hydro dispatch at each node
-df_hydro = (df_dispatch
-            .T
-            .join(df_g.loc[mask_hydro, 'NODE'], how='left')
-            .groupby('NODE').sum()
-            .reindex(df_n.index, fill_value=0))
-df_hydro['level'] = 'hydro'
-
-# Demand at each node
-def node_demand(row):
-    return df_demand[row['NEM_REGION']] * row['PROP_REG_D']
-df_node_demand = df_n.apply(node_demand, axis=1)
-df_node_demand['level'] = 'demand'
-
-# Concatenate intermittent, hydro, and demand series, add level to index
-df_o = (pd.concat([df_node_demand, df_intermittent, df_hydro])
-        .set_index('level', append=True)
-        .reorder_levels(['level', 'NODE_ID']))
+    # Intermittent dispatch at each node
+    intermittent = (dispatch
+                    .T
+                    .join(generators.loc[mask_intermittent, 'NODE'], how='left')
+                    .groupby('NODE').sum()
+                    .reindex(nodes.index, fill_value=0))
+    intermittent['level'] = 'intermittent'
+    
+    return intermittent
 
 
-# ## K-nearest neighbours
+def get_hydro_node_injections(generators, nodes, dispatch):
+    """Get hydro node injections
+    
+    Parameters
+    ----------
+    generators : pandas DataFrame
+        Generator information
+    
+    nodes : pandas DataFrame
+        Node information
+    
+    dispatch : pandas DataFrame
+        Dispatch at each node
+        
+    Returns
+    -------
+    hydro : pandas DataFrame
+        Hydro generation at each node
+    """
+    
+    # Hydro generators
+    mask_hydro = generators['FUEL_CAT'].isin(['Hydro'])
+    generators[mask_hydro]
+
+    # Hydro dispatch at each node
+    hydro = (dispatch
+             .T
+             .join(generators.loc[mask_hydro, 'NODE'], how='left')
+             .groupby('NODE').sum()
+             .reindex(nodes.index, fill_value=0))
+    hydro['level'] = 'hydro'
+    
+    return hydro
+
+
+def get_node_demand(nodes, demand):
+    """Get demand injections
+    
+    Parameters
+    ----------
+    nodes : pandas DataFrame
+        Node information
+    
+    demand : pandas DataFrame
+        NEM region demand
+    
+    Returns
+    -------
+    df_node_demand : pandas DataFrame
+        Demand at each at each node
+    """
+    
+    def node_demand(row):
+        return demand[row['NEM_REGION']] * row['PROP_REG_D']
+    
+    # Demand at each node
+    df_node_demand = nodes.apply(node_demand, axis=1)
+    df_node_demand['level'] = 'demand'
+    
+    return df_node_demand
+
+
+def get_node_injections(generators, nodes, dispatch, demand):
+    """Get node injections
+    
+    Parameters
+    ----------
+    generators : pandas DataFrame
+        Generator information
+        
+    nodes : pandas DataFrame
+        Node information
+    
+    dispatch : pandas DataFrame
+        Dispatch at each node
+    
+    demand : pandas DataFrame
+        NEM region demand
+    
+    Returns
+    -------
+    output : pandas DataFrame
+        Node signals - demand, intermittent generation, hydro generation
+    """
+    
+    # Node demand
+    node_demand = get_node_demand(nodes, demand)
+    
+    # Intermittent injections
+    intermittent = get_intermittent_node_injections(generators, nodes, dispatch)
+    
+    # Get hydro injections
+    hydro = get_hydro_node_injections(generators, nodes, dispatch)
+    
+    # Concatenate intermittent, hydro, and demand series, add level to index
+    output = (pd.concat([node_demand, intermittent, hydro])
+              .set_index('level', append=True)
+              .reorder_levels(['level', 'NODE_ID']))
+    
+    return output
+
+
+# ## K-means clustering
 # Construct clustering algorithm to transform the set of trading intervals into a reduced set of representative operating scenarios.
 
 # In[6]:
@@ -388,14 +509,23 @@ def create_scenarios(df, k=1, max_iterations=100, stopping_tolerance=0):
 # In[7]:
 
 
+# Historic dispatch and demand
+demand, dispatch = get_historic_demand_and_dispatch(archive_dir)
+
+# Node injections
+node_injections = get_node_injections(generators, nodes, dispatch, demand)
+
 # Create operating scenarios for different numbers of clusters
 for k in [1, 2]:
     # Create operating scenarios
-    df_clustered, _ = create_scenarios(df=df_o, k=k, max_iterations=int(9e9), stopping_tolerance=0)
+    df_clustered, _ = create_scenarios(df=node_injections, k=k, max_iterations=int(9e9), stopping_tolerance=0)
     
     # Save scenarios
-    with open(os.path.join(output_dir, '{0}_scenarios.pickle'.format(k)), 'wb') as f:
+    with open(os.path.join(output_dir, f'{k}_scenarios.pickle'), 'wb') as f:
         pickle.dump(df_clustered, f)
+    
+    # Save as json
+    df_clustered.to_json(os.path.join(output_dir, f'{k}_scenarios.json'))
 
 
 # ## References
@@ -405,4 +535,4 @@ for k in [1, 2]:
 # 
 # [3] - Xenophon A. K., Hill D. J., Geospatial modelling of Australia's National Electricity Market allowing backtesting against historic data.  Scientific Data (2018).
 # 
-# [4] - Xenophon A. K., Hill D. J., Geospatial Modelling of Australia's National Electricity Market - Dataset (Version v1.3) [Data set]. Zenodo. [http://doi.org/10.5281/zenodo.1326942](http://doi.org/10.5281/zenodo.1326942)
+# [4] - Xenophon A. K., Hill D. J., Geospatial Modelling of Australia's National Electricity Market - Dataset (Version v1.3) [Dataset]. Zenodo. [http://doi.org/10.5281/zenodo.1326942](http://doi.org/10.5281/zenodo.1326942)

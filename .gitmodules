@@ -1,0 +1,3 @@
+[submodule "data/egrimod-nem-dataset"]
+	path = data/egrimod-nem-dataset
+	url = https://github.com/akxen/egrimod-nem-dataset

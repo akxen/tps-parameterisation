@@ -18,9 +18,7 @@ import random
 import zipfile
 from io import BytesIO
 
-import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 
 # Initialise random number generator
 random.seed(1)
@@ -499,6 +497,9 @@ def create_scenarios(df, k=1, max_iterations=100, stopping_tolerance=0):
 
     # Convert column labels to type int
     df_clustered.columns = df_clustered.columns.astype(int)
+    
+    # Rename axis
+    df_clustered = df_clustered.rename_axis(['level_1', 'level_2'])
 
     return df_clustered, centroid_history
 

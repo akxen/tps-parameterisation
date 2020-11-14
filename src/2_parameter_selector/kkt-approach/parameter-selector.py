@@ -6,7 +6,7 @@
 # 
 # ## Import packages
 
-# In[ ]:
+# In[1]:
 
 
 import os
@@ -28,7 +28,7 @@ np.random.seed(10)
 # ## Paths
 # Paths to relevant data and output directories.
 
-# In[ ]:
+# In[2]:
 
 
 class DirectoryPaths(object):
@@ -45,7 +45,7 @@ paths = DirectoryPaths()
 # ## Model data
 # Import raw model data.
 
-# In[ ]:
+# In[3]:
 
 
 class RawData(object):
@@ -94,7 +94,7 @@ raw_data = RawData()
 # ## Organise model data
 # Format and organise data.
 
-# In[ ]:
+# In[4]:
 
 
 class OrganiseData(object):
@@ -342,7 +342,7 @@ model_data = OrganiseData()
 
 # ## Model
 
-# In[ ]:
+# In[5]:
 
 
 def create_model(use_pu=None, variable_baseline=None, objective_type=None):
@@ -751,15 +751,15 @@ def create_model(use_pu=None, variable_baseline=None, objective_type=None):
         # Proportion of total demand consumed in each region
         def ZETA_RULE(b, r):            
             # Region demand
-            region_demand = float((model_data.df_scenarios
+            region_demand = float((model_data.df_scenarios.rename_axis(['level_1', 'NODE_ID'])
                                    .join(model_data.df_n[['NEM_REGION']], how='left')
                                    .reset_index()
-                                   .groupby(['NEM_REGION','level'])
+                                   .groupby(['NEM_REGION','level_1'])
                                    .sum()
                                    .loc[(r, 'demand'), s]))
 
             # Total demand
-            total_demand = float(model_data.df_scenarios.reset_index().groupby('level').sum().loc['demand', s])
+            total_demand = float(model_data.df_scenarios.reset_index().groupby('level_1').sum().loc['demand', s])
             
             # Proportion of demand consumed in region
             demand_proportion = float(region_demand / total_demand)
@@ -1170,7 +1170,7 @@ def create_model(use_pu=None, variable_baseline=None, objective_type=None):
 
 # Setup solver.
 
-# In[ ]:
+# In[6]:
 
 
 # Setup solver
@@ -1178,6 +1178,17 @@ def create_model(use_pu=None, variable_baseline=None, objective_type=None):
 solver = 'cplex'
 solver_io = 'mps'
 opt = SolverFactory(solver, solver_io=solver_io)
+
+
+# Check model runs
+
+# In[7]:
+
+
+# Run BAU model (very high baseline)
+model_bau = create_model(use_pu=True, variable_baseline=False, objective_type='feasibility')
+model_bau.PHI = 1.5
+res_bau = opt.solve(model_bau, keepfiles=False, tee=True, warmstart=True)
 
 
 # Function to check if case should be processed.

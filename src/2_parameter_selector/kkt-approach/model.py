@@ -317,11 +317,10 @@ def define_dual_variables(m):
     return m
 
 
-def define_big_m_binary_variables(m):
+def define_complementarity_constraint_variables(m):
     """Binary variables used in Big-M linearisation"""
 
     # Permit market constraint binary variable
-    # m.V_GAMMA_7 = pyo.Var(within=pyo.Binary)
     m.V_BINARY_PERMIT_MARKET = pyo.Var(within=pyo.Binary)
 
     # Min power output binary variable
@@ -368,8 +367,8 @@ def define_variables(m):
     m = define_primal_variables(m)
     m = define_dual_variables(m)
 
-    # Binary variables used in linearised complementarity constraints
-    m = define_big_m_binary_variables(m)
+    # Variables used in linearised complementarity constraints
+    m = define_complementarity_constraint_variables(m)
 
     # Variables used in binary expansion formulation
     m = define_binary_expansion_variables(m)
@@ -787,7 +786,8 @@ def define_permit_market_constraints(m):
                     * (((m.P_GENERATOR_EMISSIONS_INTENSITY[g] - m.P_BIN_EXP_MIN_BASELINE)
                         * m.V_PRIMAL_GENERATOR_POWER[s, g])
                        - (m.P_BIN_EXP_BASELINE_DELTA * sum(m.P_BIN_EXP_TWO_POW_U[u] * m.V_BIN_EXP_Z_2[s, u, g]
-                                                           for u in m.OMEGA_U))) for g in m.OMEGA_G for s in m.OMEGA_S)
+                                                           for u in m.OMEGA_U)))
+                    for g in m.OMEGA_G for s in m.OMEGA_S)
                 <= 0)
 
     m.C_PERMIT_MARKET_1_LINEARISED = pyo.Constraint(rule=permit_market_1_linearised_rule)
@@ -803,9 +803,9 @@ def define_permit_market_constraints(m):
         """Permit market complementarity constraint 3"""
 
         return sum(m.P_SCENARIO_DURATION[s]
-                   * ((m.P_POLICY_FIXED_BASELINE - m.P_GENERATOR_EMISSIONS_INTENSITY[g]) * m.V_PRIMAL_GENERATOR_POWER[
-            s, g])
-                   for g in m.OMEGA_G for s in m.OMEGA_S) <= m.V_BINARY_PERMIT_MARKET * m.P_M_71
+                   * ((m.P_POLICY_FIXED_BASELINE - m.P_GENERATOR_EMISSIONS_INTENSITY[g])
+                      * m.V_PRIMAL_GENERATOR_POWER[s, g])
+                   for g in m.OMEGA_G for s in m.OMEGA_S) <= (m.V_BINARY_PERMIT_MARKET * m.P_M_71)
 
     m.C_PERMIT_MARKET_3 = pyo.Constraint(rule=permit_market_3_rule)
 
@@ -1005,6 +1005,21 @@ def configure_weighted_rrn_price_targeting_model(m):
     return m
 
 
+def configure_permit_price_targeting_model(m):
+    """Configure permit price targeting model"""
+
+    # Ensure permit price targeting objective is the only one active
+    m.O_FEASIBILITY.deactivate()
+    m.O_WEIGHTED_RRN_PRICE_TARGET.deactivate()
+
+    # Deactivate first order condition and permit market constraints that have not been linearised
+    m.C_FOC_1.deactivate()
+    m.C_PERMIT_MARKET_1.deactivate()
+    m.C_PERMIT_MARKET_3.deactivate()
+
+    return m
+
+
 def configure_model(m, options):
     """Activate / deactivate constraints and objectives depending on the case to be analysed"""
 
@@ -1013,6 +1028,9 @@ def configure_model(m, options):
 
     elif options['mode'] == 'weighted_rrn_price_target':
         m = configure_weighted_rrn_price_targeting_model(m)
+
+    elif options['mode'] == 'permit_price_target':
+        m = configure_permit_price_targeting_model(m)
 
     else:
         raise Exception(f"Unexpected mode: {options['mode']}")

@@ -220,9 +220,9 @@ if __name__ == '__main__':
             'P_BINARY_EXPANSION_LARGEST_INTEGER': 10,
             'P_POLICY_FIXED_BASELINE': 1,
             'P_POLICY_PERMIT_PRICE_TARGET': 30,
-            'P_POLICY_WEIGHTED_RRN_PRICE_TARGET': 36,
+            'P_POLICY_WEIGHTED_RRN_PRICE_TARGET': 20,
         },
-        'mode': 'feasibility',
+        'mode': 'weighted_rrn_price_target',
     }
 
     # Get case data
@@ -239,15 +239,15 @@ if __name__ == '__main__':
         print(k, v)
 
     # Run models
-    model_1 = check_bau_model()
+    # model_1 = check_bau_model()
     model_2 = solve_model(model_2)
 
-    var_check = check_variables(model_1, model_2)
-    var_max_diff = {k: v['max_difference'] for k, v in var_check.items()}
-    for k, v in var_max_diff.items():
-        print(k, v)
-
-    expr_check = check_expressions(model_1, model_2)
-    expr_max_diff = {k: v['max_difference'] for k, v in expr_check.items()}
-    for k, v in expr_max_diff.items():
-        print(k, v)
+    # var_check = check_variables(model_1, model_2)
+    # var_max_diff = {k: v['max_difference'] for k, v in var_check.items()}
+    # for k, v in var_max_diff.items():
+    #     print(k, v)
+    #
+    # expr_check = check_expressions(model_1, model_2)
+    # expr_max_diff = {k: v['max_difference'] for k, v in expr_check.items()}
+    # for k, v in expr_max_diff.items():
+    #     print(k, v)

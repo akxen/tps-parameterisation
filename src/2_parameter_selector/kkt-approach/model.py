@@ -1130,6 +1130,10 @@ def apply_pu_scaling(m):
             for j in m.__getattribute__(i).keys():
                 m.__getattribute__(i)[j] = m.__getattribute__(i)[j] / m.P_NETWORK_BASE_POWER
 
+    # Scale price targets
+    m.P_POLICY_PERMIT_PRICE_TARGET = m.P_POLICY_PERMIT_PRICE_TARGET.value / m.P_NETWORK_BASE_POWER.value
+    m.P_POLICY_WEIGHTED_RRN_PRICE_TARGET = m.P_POLICY_WEIGHTED_RRN_PRICE_TARGET.value / m.P_NETWORK_BASE_POWER.value
+
     return m
 
 
@@ -1183,11 +1187,28 @@ def configure_feasibility_model(m):
     return m
 
 
+def configure_weighted_rrn_price_targeting_model(m):
+    """Configure mode to target weighted RRN prices"""
+
+    # Ensure weighted RRN price targeting objective is the only one active
+    m.O_FEASIBILITY.deactivate()
+    m.O_PERMIT_PRICE_TARGET.deactivate()
+
+    # Deactivate first order condition and permit market constraints that have not been linearised
+    m.C_FOC_1.deactivate()
+    m.C_PERMIT_MARKET_1.deactivate()
+    m.C_PERMIT_MARKET_3.deactivate()
+
+    return m
+
+
 def configure_model(m, options):
     """Activate / deactivate constraints and objectives depending on the case to be analysed"""
 
     if options['mode'] == 'feasibility':
         m = configure_feasibility_model(m)
+    if options['mode'] == 'weighted_rrn_price_target':
+        m = configure_weighted_rrn_price_targeting_model(m)
     else:
         raise Exception(f"Unexpected mode: {options['mode']}")
 
@@ -1228,7 +1249,7 @@ if __name__ == '__main__':
             'P_BINARY_EXPANSION_LARGEST_INTEGER': 3,
             'P_POLICY_FIXED_BASELINE': 1.2,
             'P_POLICY_PERMIT_PRICE_TARGET': 30,
-            'P_POLICY_WEIGHTED_RRN_PRICE_TARGET': 36,
+            'P_POLICY_WEIGHTED_RRN_PRICE_TARGET': 20,
         },
         'mode': 'feasibility',
     }

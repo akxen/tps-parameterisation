@@ -1010,8 +1010,10 @@ def configure_model(m, options):
 
     if options['mode'] == 'feasibility':
         m = configure_feasibility_model(m)
-    if options['mode'] == 'weighted_rrn_price_target':
+
+    elif options['mode'] == 'weighted_rrn_price_target':
         m = configure_weighted_rrn_price_targeting_model(m)
+
     else:
         raise Exception(f"Unexpected mode: {options['mode']}")
 
@@ -1035,9 +1037,47 @@ def solve_model(m):
     return m
 
 
-def get_solution(m):
+def extract_value(v):
+    """Extract model value"""
+
+    if type(v) in [int, float]:
+        return v
+    else:
+        return v.value
+
+
+def get_solution(m, params):
     """Return model solution"""
-    return m
+
+    # Extract solution
+    base_solution = {
+        'V_PRIMAL_GENERATOR_POWER': {k: extract_value(v) for k, v in m.V_PRIMAL_GENERATOR_POWER.items()},
+        'V_DUAL_PERMIT_MARKET': m.V_DUAL_PERMIT_MARKET.value,
+        'E_WEIGHTED_RRN_PRICE': m.E_WEIGHTED_RRN_PRICE.expr(),
+        'E_AVERAGE_ELECTRICITY_PRICE': m.E_AVERAGE_ELECTRICITY_PRICE.expr(),
+        'P_POLICY_PERMIT_PRICE_TARGET': m.P_POLICY_PERMIT_PRICE_TARGET.value,
+        'P_POLICY_WEIGHTED_RRN_PRICE_TARGET': m.P_POLICY_PERMIT_PRICE_TARGET.value,
+        'P_SCENARIO_DURATION': {k: extract_value(v) for k, v in m.P_SCENARIO_DURATION.items()}
+    }
+
+    # Can only extract discretised baseline when targeting prices
+    if params['mode'] in ['weighted_rrn_price_target', 'permit_price_target']:
+        price_targeting_solution = {
+            **{'E_BIN_EXP_DISCRETISED_BASELINE': m.E_BIN_EXP_DISCRETISED_BASELINE.expr()}
+        }
+    else:
+        price_targeting_solution = {}
+
+    # Combine into single dictionary
+    solution = {**base_solution, **price_targeting_solution}
+
+    # Combine into single dictionary
+    output = {
+        'parameters': params,
+        'solution': solution
+    }
+
+    return output
 
 
 if __name__ == '__main__':

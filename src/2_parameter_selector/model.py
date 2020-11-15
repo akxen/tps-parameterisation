@@ -1046,7 +1046,8 @@ def solve_model(m):
     # Solver options
     options = {
         'mip tolerances absmipgap': 1e-6,
-        'emphasis mip': 1  # Emphasise feasibility
+        'emphasis mip': 1,  # Emphasise feasibility
+        # 'timelimit': 5000
     }
 
     # Solve model
@@ -1067,27 +1068,40 @@ def extract_value(v):
 def get_solution(m, params):
     """Return model solution"""
 
-    # Extract solution
-    base_solution = {
-        'V_PRIMAL_GENERATOR_POWER': {k: extract_value(v) for k, v in m.V_PRIMAL_GENERATOR_POWER.items()},
-        'V_DUAL_PERMIT_MARKET': m.V_DUAL_PERMIT_MARKET.value,
-        'E_WEIGHTED_RRN_PRICE': m.E_WEIGHTED_RRN_PRICE.expr(),
-        'E_AVERAGE_ELECTRICITY_PRICE': m.E_AVERAGE_ELECTRICITY_PRICE.expr(),
+    # Extract selected model parameters - used to check case file was correctly specified
+    model_parameters = {
         'P_POLICY_PERMIT_PRICE_TARGET': m.P_POLICY_PERMIT_PRICE_TARGET.value,
         'P_POLICY_WEIGHTED_RRN_PRICE_TARGET': m.P_POLICY_PERMIT_PRICE_TARGET.value,
-        'P_SCENARIO_DURATION': {k: extract_value(v) for k, v in m.P_SCENARIO_DURATION.items()}
+        'P_SCENARIO_DURATION': {k: extract_value(v) for k, v in m.P_SCENARIO_DURATION.items()},
     }
 
-    # Can only extract discretised baseline when targeting prices
-    if params['mode'] in ['weighted_rrn_price_target', 'permit_price_target']:
-        price_targeting_solution = {
-            **{'E_BIN_EXP_DISCRETISED_BASELINE': m.E_BIN_EXP_DISCRETISED_BASELINE.expr()}
+    # Extract selected variables and expressions
+    try:
+        variables = {
+            'V_PRIMAL_GENERATOR_POWER': {k: extract_value(v) for k, v in m.V_PRIMAL_GENERATOR_POWER.items()},
+            'V_DUAL_PERMIT_MARKET': m.V_DUAL_PERMIT_MARKET.value,
         }
-    else:
-        price_targeting_solution = {}
+    except ValueError:
+        variables = {}
+
+    try:
+        expressions = {
+            'E_WEIGHTED_RRN_PRICE': m.E_WEIGHTED_RRN_PRICE.expr(),
+            'E_AVERAGE_ELECTRICITY_PRICE': m.E_AVERAGE_ELECTRICITY_PRICE.expr(),
+        }
+    except ValueError:
+        expressions = {}
+
+    # Extract discretised baseline - can only be extracted when targeting prices
+    try:
+        price_targeting_expressions = {
+            'E_BIN_EXP_DISCRETISED_BASELINE': m.E_BIN_EXP_DISCRETISED_BASELINE.expr(),
+        }
+    except ValueError:
+        price_targeting_expressions = {}
 
     # Combine into single dictionary
-    solution = {**base_solution, **price_targeting_solution}
+    solution = {**model_parameters, **variables, **expressions, **price_targeting_expressions}
 
     # Combine into single dictionary
     output = {
@@ -1099,10 +1113,9 @@ def get_solution(m, params):
 
 
 if __name__ == '__main__':
-    # Data directories for scenarios
-    data_directory = os.path.join(os.path.dirname(__file__), os.path.pardir, os.path.pardir, os.path.pardir, 'data')
-    scenario_directory = os.path.join(os.path.dirname(__file__), os.path.pardir, os.path.pardir, '1_create_scenarios',
-                                      'output')
+    # Data and output directories
+    data_directory = os.path.join(os.path.dirname(__file__), os.path.pardir, os.path.pardir, 'data')
+    scenario_directory = os.path.join(os.path.dirname(__file__), os.path.pardir, '1_create_scenarios', 'output')
     tmp_directory = os.path.join(os.path.dirname(__file__), 'utils', 'tmp')
 
     model_options = {

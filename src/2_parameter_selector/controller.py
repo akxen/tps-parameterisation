@@ -305,14 +305,13 @@ def run_permit_price_targeting_scenarios(data_dir, scenario_dir, tmp_dir, output
 
 
 if __name__ == '__main__':
-    # Data directories for scenarios
-    data_directory = os.path.join(os.path.dirname(__file__), os.path.pardir, os.path.pardir, os.path.pardir, 'data')
-    scenario_directory = os.path.join(os.path.dirname(__file__), os.path.pardir, os.path.pardir, '1_create_scenarios',
-                                      'output')
+    # Data and output directories
+    data_directory = os.path.join(os.path.dirname(__file__), os.path.pardir, os.path.pardir, 'data')
+    scenario_directory = os.path.join(os.path.dirname(__file__), os.path.pardir, '1_create_scenarios', 'output')
     tmp_directory = os.path.join(os.path.dirname(__file__), 'utils', 'tmp')
     output_directory = os.path.join(os.path.dirname(__file__), 'output')
 
     # Run scenarios
-    # run_emissions_intensity_baseline_scenarios(data_directory, scenario_directory, tmp_directory, output_directory)
+    run_emissions_intensity_baseline_scenarios(data_directory, scenario_directory, tmp_directory, output_directory)
     run_weighted_rrn_price_targeting_scenarios(data_directory, scenario_directory, tmp_directory, output_directory)
-    # run_permit_price_targeting_scenarios(data_directory, scenario_directory, tmp_directory, output_directory)
+    run_permit_price_targeting_scenarios(data_directory, scenario_directory, tmp_directory, output_directory)

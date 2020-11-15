@@ -14265,13 +14265,14 @@ a.anchor-link {
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[1]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">import</span> <span class="nn">random</span>
 <span class="kn">import</span> <span class="nn">itertools</span>
 <span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">pi</span>
 
@@ -14298,7 +14299,7 @@ a.anchor-link {
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[2]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="k">class</span> <span class="nc">DirectoryPaths</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -14326,7 +14327,7 @@ a.anchor-link {
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[3]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="k">class</span> <span class="nc">RawData</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -14360,9 +14361,11 @@ a.anchor-link {
         <span class="c1"># ----------       </span>
         <span class="c1"># Generating unit information</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">df_g</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_dir</span><span class="p">,</span> <span class="s1">&#39;egrimod-nem-dataset-v1.3&#39;</span><span class="p">,</span> <span class="s1">&#39;akxen-egrimod-nem-dataset-4806603&#39;</span><span class="p">,</span> <span class="s1">&#39;generators&#39;</span><span class="p">,</span> <span class="s1">&#39;generators.csv&#39;</span><span class="p">),</span> <span class="n">index_col</span><span class="o">=</span><span class="s1">&#39;DUID&#39;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;NODE&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">})</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">df_g</span><span class="p">[</span><span class="s1">&#39;SRMC_2016-17&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df_g</span><span class="p">[</span><span class="s1">&#39;SRMC_2016-17&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+<span class="c1">#         self.df_g[&#39;SRMC_2016-17&#39;] = self.df_g[&#39;SRMC_2016-17&#39;].map(lambda x: x + np.random.uniform(0, 2))</span>
+        <span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+        <span class="n">df_srmc_perturbation</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">({</span><span class="n">i</span><span class="p">:</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">df_g</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">to_list</span><span class="p">()})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">df_g</span><span class="p">[</span><span class="s1">&#39;SRMC_2016-17&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df_g</span><span class="p">[</span><span class="s1">&#39;SRMC_2016-17&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">df_srmc_perturbation</span>
         
-               
         <span class="c1"># Operating scenarios</span>
         <span class="c1"># -------------------</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">paths</span><span class="o">.</span><span class="n">scenarios_dir</span><span class="p">,</span> <span class="s1">&#39;output&#39;</span><span class="p">,</span> <span class="s1">&#39;2_scenarios.pickle&#39;</span><span class="p">),</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
@@ -14386,7 +14389,7 @@ a.anchor-link {
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[4]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="k">class</span> <span class="nc">OrganiseData</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -14645,7 +14648,7 @@ a.anchor-link {
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[5]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">create_model</span><span class="p">(</span><span class="n">use_pu</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">variable_baseline</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">objective_type</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -15041,9 +15044,9 @@ a.anchor-link {
         <span class="k">def</span> <span class="nf">D_RULE</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
             <span class="n">demand</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">model_data</span><span class="o">.</span><span class="n">df_scenarios</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="s1">&#39;demand&#39;</span><span class="p">,</span> <span class="n">n</span><span class="p">),</span> <span class="n">s</span><span class="p">])</span>
             
-            <span class="c1"># Remove small demand to improve numerical conditioning</span>
-            <span class="k">if</span> <span class="n">demand</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="n">demand</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="c1">#             # Remove small demand to improve numerical conditioning</span>
+<span class="c1">#             if demand &lt; 1:</span>
+<span class="c1">#                 demand = 0</span>
                         
             <span class="k">if</span> <span class="n">use_pu</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">demand</span> <span class="o">/</span> <span class="n">model</span><span class="o">.</span><span class="n">BASE_POWER</span>
@@ -15485,7 +15488,7 @@ a.anchor-link {
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[6]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># Setup solver</span>
@@ -15506,168 +15509,25 @@ a.anchor-link {
 <p>Check model runs</p>
 
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[7]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># Run BAU model (very high baseline)</span>
-<span class="n">model_bau</span> <span class="o">=</span> <span class="n">create_model</span><span class="p">(</span><span class="n">use_pu</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">variable_baseline</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">objective_type</span><span class="o">=</span><span class="s1">&#39;feasibility&#39;</span><span class="p">)</span>
-<span class="n">model_bau</span><span class="o">.</span><span class="n">PHI</span> <span class="o">=</span> <span class="mf">1.5</span>
-<span class="n">res_bau</span> <span class="o">=</span> <span class="n">opt</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">model_bau</span><span class="p">,</span> <span class="n">keepfiles</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">tee</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">warmstart</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">check_bau_model</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Run BAU model (very high baseline)&quot;&quot;&quot;</span>
+    
+    <span class="n">model_bau</span> <span class="o">=</span> <span class="n">create_model</span><span class="p">(</span><span class="n">use_pu</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">variable_baseline</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">objective_type</span><span class="o">=</span><span class="s1">&#39;feasibility&#39;</span><span class="p">)</span>
+    <span class="n">model_bau</span><span class="o">.</span><span class="n">PHI</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">res_bau</span> <span class="o">=</span> <span class="n">opt</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">model_bau</span><span class="p">,</span> <span class="n">keepfiles</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">tee</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">warmstart</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">model_bau</span>
 </pre></div>
 
      </div>
 </div>
 </div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>WARNING: Initializing ordered Set OMEGA_NM with a fundamentally unordered data
-    source (type: set).  This WILL potentially lead to nondeterministic
-    behavior in Pyomo
-Flow directions conform with regional flow limit directions: True
-Flow directions conform with regional flow limit directions: True
-Flow directions conform with regional flow limit directions: True
-
-Welcome to IBM(R) ILOG(R) CPLEX(R) Interactive Optimizer 12.10.0.0
-  with Simplex, Mixed Integer &amp; Barrier Optimizers
-5725-A06 5725-A29 5724-Y48 5724-Y49 5724-Y54 5724-Y55 5655-Y21
-Copyright IBM Corp. 1988, 2019.  All Rights Reserved.
-
-Type &#39;help&#39; for a list of available commands.
-Type &#39;help&#39; followed by a command name for more
-information on commands.
-
-CPLEX&gt; Logfile &#39;cplex.log&#39; closed.
-Logfile &#39;/tmp/tmpvrln9ca2.cplex.log&#39; open.
-CPLEX&gt; Specified objective sense: MINIMIZE
-Selected objective  name:  x16566
-Selected RHS        name:  RHS
-Selected bound      name:  BOUND
-Problem &#39;/tmp/tmpnvbh9q45.pyomo.mps&#39; read.
-Read time = 0.03 sec. (6.28 ticks)
-CPLEX&gt; Warning: no MIP start values read, no MIP start loaded.
-MIP start file &#39;/tmp/tmpgqm_8bv3.cplex.mst&#39; read.
-CPLEX&gt; Problem name         : /tmp/tmpnvbh9q45.pyomo.mps
-Objective sense      : Minimize
-Variables            :   14745  [Box: 1,  Free: 9335,  Binary: 5409]
-Objective nonzeros   :       1
-Linear constraints   :   25562  [Less: 16227,  Greater: 5409,  Equal: 3926]
-  Nonzeros           :   67220
-  RHS nonzeros       :   17522
-
-Variables            : Min LB: 0.000000         Max UB: 1.000000       
-Objective nonzeros   : Min   : 1.000000         Max   : 1.000000       
-Linear constraints   :
-  Nonzeros           : Min   : 0.001862317      Max   : 83215.16       
-  RHS nonzeros       : Min   : 0.0001685220     Max   : 100.0000       
-CPLEX&gt; Version identifier: 12.10.0.0 | 2019-11-26 | 843d4de
-Warning:  No solution found from 1 MIP starts.
-Retaining values of one MIP start for possible repair.
-Tried aggregator 7 times.
-MIP Presolve eliminated 16360 rows and 5549 columns.
-MIP Presolve modified 5455 coefficients.
-Aggregator did 2208 substitutions.
-Reduced MIP has 6994 rows, 6988 columns, and 24731 nonzeros.
-Reduced MIP has 2958 binaries, 0 generals, 0 SOSs, and 0 indicators.
-Presolve time = 0.48 sec. (353.95 ticks)
-Probing fixed 2231 vars, tightened 5787 bounds.
-Probing time = 2.84 sec. (1814.73 ticks)
-Tried aggregator 4 times.
-MIP Presolve eliminated 3377 rows and 4472 columns.
-MIP Presolve modified 2147 coefficients.
-Aggregator did 292 substitutions.
-Reduced MIP has 3325 rows, 2224 columns, and 10212 nonzeros.
-Reduced MIP has 726 binaries, 0 generals, 0 SOSs, and 0 indicators.
-Presolve time = 0.03 sec. (27.96 ticks)
-Probing fixed 23 vars, tightened 865 bounds.
-Probing time = 0.19 sec. (136.18 ticks)
-Tried aggregator 2 times.
-Detecting symmetries...
-MIP Presolve eliminated 27 rows and 46 columns.
-MIP Presolve modified 180 coefficients.
-Aggregator did 4 substitutions.
-Reduced MIP has 3294 rows, 2174 columns, and 9791 nonzeros.
-Reduced MIP has 703 binaries, 0 generals, 0 SOSs, and 0 indicators.
-Presolve time = 0.01 sec. (8.60 ticks)
-Probing fixed 5 vars, tightened 2103 bounds.
-Probing time = 0.26 sec. (210.91 ticks)
-Clique table members: 3595.
-MIP emphasis: balance optimality and feasibility.
-MIP search method: dynamic search.
-Parallel mode: deterministic, using up to 4 threads.
-Root relaxation solution time = 0.13 sec. (129.64 ticks)
-
-        Nodes                                         Cuts/
-   Node  Left     Objective  IInf  Best Integer    Best Bound    ItCnt     Gap
-
-      0     0        0.0000   194                      0.0000     1375         
-      0     0        0.0000   194                   Cuts: 131     1430         
-      0     0        0.0000   194                   Cuts: 114     1493         
-      0     0        0.0000   194                    Cuts: 78     1551         
-      0     0        0.0000   194                    Cuts: 25     1573         
-      0     0        0.0000   194                     Cuts: 8     1577         
-Detecting symmetries...
-Repair heuristic found nothing.
-Detecting symmetries...
-      0     2        0.0000    95                      0.0000     1577         
-Elapsed time = 18.42 sec. (13503.56 ticks, tree = 0.02 MB, solutions = 0)
-     82    25        0.0000    64                      0.0000     6124         
-    238    93        0.0000    14                      0.0000    12709         
-    282    93        0.0000    39                      0.0000    15157         
-    502   136    infeasible                            0.0000    18742         
-    750   168        0.0000    24                      0.0000    23763         
-    959   195    infeasible                            0.0000    28423         
-   1210   149    infeasible                            0.0000    33767         
-   1510   182    infeasible                            0.0000    40650         
-   1912   138        0.0000    46                      0.0000    47416         
-   3193   210        0.0000    41                      0.0000    75970         
-Elapsed time = 22.00 sec. (16760.81 ticks, tree = 0.17 MB, solutions = 0)
-   3795   234        0.0000     7                      0.0000    90494         
-*  4173   209      integral     0        0.0000        0.0000    93787    0.00%
-
-Clique cuts applied:  21
-Cover cuts applied:  15
-Implied bound cuts applied:  82
-Flow cuts applied:  61
-Mixed integer rounding cuts applied:  74
-Gomory fractional cuts applied:  8
-
-Root node processing (before b&amp;c):
-  Real time             =   18.39 sec. (13480.68 ticks)
-Parallel b&amp;c, 4 threads:
-  Real time             =    5.19 sec. (4560.95 ticks)
-  Sync time (average)   =    0.54 sec.
-  Wait time (average)   =    0.00 sec.
-                          ------------
-Total (root+branch&amp;cut) =   23.59 sec. (18041.63 ticks)
-
-Solution pool: 1 solution saved.
-
-MIP - Integer optimal solution:  Objective =  0.0000000000e+00
-Solution time =   23.59 sec.  Iterations = 99837  Nodes = 4268
-Deterministic time = 18041.67 ticks  (764.87 ticks/sec)
-
-CPLEX&gt; Incumbent solution written to file &#39;/tmp/tmpb4hpm59h.cplex.sol&#39;.
-CPLEX&gt; </pre>
-</div>
-</div>
-
-</div>
-
 </div>
 
 </div>
@@ -15777,7 +15637,7 @@ CPLEX&gt; </pre>
             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">paths</span><span class="o">.</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">filename</span><span class="p">),</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
                 <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">fixed_baseline_results</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
             
-<span class="n">run_emissions_intensity_baseline_scenarios</span><span class="p">()</span>
+<span class="c1"># run_emissions_intensity_baseline_scenarios()</span>
 </pre></div>
 
      </div>
@@ -15879,7 +15739,7 @@ CPLEX&gt; </pre>
             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">paths</span><span class="o">.</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">filename</span><span class="p">),</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
                 <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">price_target_results</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
            
-<span class="n">run_weighted_rrn_price_target_scenarios</span><span class="p">()</span>
+<span class="c1"># run_weighted_rrn_price_target_scenarios()</span>
 </pre></div>
 
      </div>
@@ -15959,7 +15819,7 @@ CPLEX&gt; </pre>
             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">paths</span><span class="o">.</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">filename</span><span class="p">),</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
                 <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">permit_price_target_results</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
 
-<span class="n">run_permit_price_target_scenarios</span><span class="p">()</span>
+<span class="c1"># run_permit_price_target_scenarios()</span>
 </pre></div>
 
      </div>

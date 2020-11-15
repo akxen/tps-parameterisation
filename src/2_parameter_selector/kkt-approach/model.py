@@ -688,7 +688,7 @@ def define_first_order_condition_constraints(m):
                 - m.V_DUAL_LAMBDA[s, m.P_GENERATOR_NODE[g]]
                 == 0)
 
-    # m.C_FOC_1_LINEARISED = pyo.Constraint(m.OMEGA_S, m.OMEGA_G, rule=foc_1_linearised_rule)
+    m.C_FOC_1_LINEARISED = pyo.Constraint(m.OMEGA_S, m.OMEGA_G, rule=foc_1_linearised_rule)
 
     # # Activate appropriate constraint depending on whether baseline is fixed or variable
     # if variable_baseline:
@@ -987,7 +987,7 @@ def define_permit_market_constraints(m):
                                                            for u in m.OMEGA_U))) for g in m.OMEGA_G for s in m.OMEGA_S)
                 <= 0)
 
-    # m.C_PERMIT_MARKET_1_LINEARISED = pyo.Constraint(rule=permit_market_1_linearised_rule)
+    m.C_PERMIT_MARKET_1_LINEARISED = pyo.Constraint(rule=permit_market_1_linearised_rule)
 
     def permit_market_2_rule(m):
         """Permit market complementarity constraint 2"""
@@ -1016,7 +1016,7 @@ def define_permit_market_constraints(m):
                                                          for u in m.OMEGA_U))) for g in m.OMEGA_G for s in m.OMEGA_S)
                 <= m.V_BINARY_PERMIT_MARKET * m.P_M_71)
 
-    # m.C_PERMIT_MARKET_3_LINEARISED = pyo.Constraint(rule=permit_market_3_linearised_rule)
+    m.C_PERMIT_MARKET_3_LINEARISED = pyo.Constraint(rule=permit_market_3_linearised_rule)
 
     def permit_market_4_rule(m):
         """Permit market complementarity constraint 4"""
@@ -1057,15 +1057,15 @@ def define_weighted_rrn_price_targeting_constraints(m):
 def define_constraints(m):
     """Define constraints"""
 
-    # m = define_binary_expansion_constraints(m)
+    m = define_binary_expansion_constraints(m)
     m = define_first_order_condition_constraints(m)
     m = define_network_constraint(m)
     m = define_linearised_complementarity_constraints(m)
     m = define_permit_market_constraints(m)
 
     # Constraints used to obtain absolute values between variables and some target
-    # m = define_permit_price_targeting_constraints(m)
-    # m = define_weighted_rrn_price_targeting_constraints(m)
+    m = define_permit_price_targeting_constraints(m)
+    m = define_weighted_rrn_price_targeting_constraints(m)
 
     return m
 
@@ -1076,12 +1076,12 @@ def define_objective_functions(m):
     # Use if trying to find a feasible solution for a fixed baseline
     m.O_FEASIBILITY = pyo.Objective(expr=m.V_DUMMY, sense=pyo.minimize)
 
-    # # Objective function
-    # m.O_PERMIT_PRICE_TARGET = pyo.Objective(expr=m.V_DUMMY_PERMIT_PRICE_TARGET_X_1 + m.V_DUMMY_PERMIT_PRICE_TARGET_X_2)
-    #
-    # # Weighted RRN price targeting objective function
-    # m.O_WEIGHTED_RRN_PRICE_TARGET = pyo.Objective(
-    #     expr=m.V_DUMMY_WEIGHTED_RRN_PRICE_X_1 + m.V_DUMMY_WEIGHTED_RRN_PRICE_X_2)
+    # Objective function
+    m.O_PERMIT_PRICE_TARGET = pyo.Objective(expr=m.V_DUMMY_PERMIT_PRICE_TARGET_X_1 + m.V_DUMMY_PERMIT_PRICE_TARGET_X_2)
+
+    # Weighted RRN price targeting objective function
+    m.O_WEIGHTED_RRN_PRICE_TARGET = pyo.Objective(
+        expr=m.V_DUMMY_WEIGHTED_RRN_PRICE_X_1 + m.V_DUMMY_WEIGHTED_RRN_PRICE_X_2)
 
     return m
 
@@ -1162,23 +1162,23 @@ def configure_feasibility_model(m):
     """Configure model to accept a fixed emissions intensity baseline"""
 
     # Deactivate price targeting objective functions
-    # m.O_PERMIT_PRICE_TARGET.deactivate()
-    # m.O_WEIGHTED_RRN_PRICE_TARGET.deactivate()
+    m.O_PERMIT_PRICE_TARGET.deactivate()
+    m.O_WEIGHTED_RRN_PRICE_TARGET.deactivate()
 
-    # # Deactivate linearised constraints - those with discretised baseline
-    # m.C_FOC_1_LINEARISED.deactivate()
-    # m.C_PERMIT_MARKET_1_LINEARISED.deactivate()
-    # m.C_PERMIT_MARKET_3_LINEARISED.deactivate()
-    #
-    # # Deactivate constraints used for binary expansion linearisation
-    # m.C_Z_1_CONSTRAINT_1.deactivate()
-    # m.C_Z_1_CONSTRAINT_2.deactivate()
-    # m.C_Z_1_CONSTRAINT_3.deactivate()
-    # m.C_Z_1_CONSTRAINT_4.deactivate()
-    # m.C_Z_2_CONSTRAINT_1.deactivate()
-    # m.C_Z_2_CONSTRAINT_2.deactivate()
-    # m.C_Z_2_CONSTRAINT_3.deactivate()
-    # m.C_Z_2_CONSTRAINT_4.deactivate()
+    # Deactivate linearised constraints - those with discretised baseline
+    m.C_FOC_1_LINEARISED.deactivate()
+    m.C_PERMIT_MARKET_1_LINEARISED.deactivate()
+    m.C_PERMIT_MARKET_3_LINEARISED.deactivate()
+
+    # Deactivate constraints used for binary expansion linearisation
+    m.C_Z_1_CONSTRAINT_1.deactivate()
+    m.C_Z_1_CONSTRAINT_2.deactivate()
+    m.C_Z_1_CONSTRAINT_3.deactivate()
+    m.C_Z_1_CONSTRAINT_4.deactivate()
+    m.C_Z_2_CONSTRAINT_1.deactivate()
+    m.C_Z_2_CONSTRAINT_2.deactivate()
+    m.C_Z_2_CONSTRAINT_3.deactivate()
+    m.C_Z_2_CONSTRAINT_4.deactivate()
 
     return m
 

@@ -1,9 +1,12 @@
 """Extract data"""
 
 import os
+import random
 
 import numpy as np
 import pandas as pd
+
+np.random.seed(10)
 
 
 def load_generators(data_dir):
@@ -198,13 +201,16 @@ def get_hvdc_forward_limit(hvdc_edges):
 def get_hvdc_reverse_limit(hvdc_edges):
     """Get HVDC reverse limit"""
 
-    return {k: -v for k, v in hvdc_edges['FORWARD_LIMIT_MW'].to_dict().items()}
+    return {k: -v for k, v in hvdc_edges['REVERSE_LIMIT_MW'].to_dict().items()}
 
 
 def get_reference_node_indicator(nodes):
     """Get reference node indicators"""
 
-    return nodes['RRN'].to_dict()
+    # Using VIC and TAS Regional Reference Nodes as voltage angle reference nodes for the NEM's two AC grids
+    rrn_mask = nodes['NEM_REGION'].isin(['VIC1', 'TAS1']) & (nodes['RRN'] == 1)
+
+    return rrn_mask.astype(int).to_dict()
 
 
 def get_generator_attribute(generators, attribute):
@@ -372,6 +378,24 @@ def get_region_rrn_node_map(nodes):
     return nodes.loc[nodes['RRN'] == 1, 'NEM_REGION'].reset_index().set_index('NEM_REGION')['NODE_ID'].to_dict()
 
 
+def get_generator_srmc(generators):
+    """Short-run marginal cost for each generator"""
+
+    # Perturb SRMCs by a small amount to assist solver find a unique solution
+    random.seed(10)
+    srmc_perturbation = pd.Series({i: random.uniform(0, 2) for i in generators.index.to_list()})
+    srmc = generators['SRMC_2016-17'] + srmc_perturbation
+
+    # generators['SRMC_2016-17'] = generators['SRMC_2016-17'].map(lambda x: x + np.random.uniform(0, 2))
+    # a = generators['SRMC_2016-17'].map(lambda x: np.random.uniform(0, 2))
+    # print(a)
+
+    # Extract SRMCs
+    generator_index = get_generator_index(generators)
+
+    return {k: v for k, v in srmc.to_dict().items() if k in generator_index}
+
+
 def get_case_data(data_dir, scenarios_dir, tmp_dir, options, use_cache):
     """Get case data"""
 
@@ -405,7 +429,7 @@ def get_case_data(data_dir, scenarios_dir, tmp_dir, options, use_cache):
         'P_NETWORK_REFERENCE_NODE_INDICATOR': get_reference_node_indicator(nodes),
         'P_GENERATOR_MAX_OUTPUT': get_generator_attribute(generators, 'REG_CAP'),
         'P_GENERATOR_MIN_OUTPUT': get_generator_min_output(generators),
-        'P_GENERATOR_SRMC': get_generator_attribute(generators, 'SRMC_2016-17'),
+        'P_GENERATOR_SRMC': get_generator_srmc(generators),
         'P_GENERATOR_EMISSIONS_INTENSITY': get_generator_attribute(generators, 'EMISSIONS'),
         'P_NETWORK_HVDC_INCIDENCE_MAT': get_hvdc_incidence_matrix(nodes, hvdc_edges),
         'P_NETWORK_INTERCONNECTOR_INCIDENCE_MAT': get_interconnector_incidence_matrix(interconnectors, nodes),

@@ -6,13 +6,14 @@
 # 
 # ## Import packages
 
-# In[1]:
+# In[ ]:
 
 
 import os
 import re
 import time
 import pickle
+import random
 import itertools
 from math import pi
 
@@ -28,7 +29,7 @@ np.random.seed(10)
 # ## Paths
 # Paths to relevant data and output directories.
 
-# In[2]:
+# In[ ]:
 
 
 class DirectoryPaths(object):
@@ -45,7 +46,7 @@ paths = DirectoryPaths()
 # ## Model data
 # Import raw model data.
 
-# In[3]:
+# In[ ]:
 
 
 class RawData(object):
@@ -79,9 +80,11 @@ class RawData(object):
         # ----------       
         # Generating unit information
         self.df_g = pd.read_csv(os.path.join(self.data_dir, 'egrimod-nem-dataset-v1.3', 'akxen-egrimod-nem-dataset-4806603', 'generators', 'generators.csv'), index_col='DUID', dtype={'NODE': int})
-        self.df_g['SRMC_2016-17'] = self.df_g['SRMC_2016-17'].map(lambda x: x + np.random.uniform(0, 2))
+#         self.df_g['SRMC_2016-17'] = self.df_g['SRMC_2016-17'].map(lambda x: x + np.random.uniform(0, 2))
+        random.seed(10)
+        df_srmc_perturbation = pd.Series({i: random.uniform(0, 2) for i in self.df_g.index.to_list()})
+        self.df_g['SRMC_2016-17'] = self.df_g['SRMC_2016-17'] + df_srmc_perturbation
         
-               
         # Operating scenarios
         # -------------------
         with open(os.path.join(paths.scenarios_dir, 'output', '2_scenarios.pickle'), 'rb') as f:
@@ -94,7 +97,7 @@ raw_data = RawData()
 # ## Organise model data
 # Format and organise data.
 
-# In[4]:
+# In[ ]:
 
 
 class OrganiseData(object):
@@ -342,7 +345,7 @@ model_data = OrganiseData()
 
 # ## Model
 
-# In[5]:
+# In[ ]:
 
 
 def create_model(use_pu=None, variable_baseline=None, objective_type=None):
@@ -738,9 +741,9 @@ def create_model(use_pu=None, variable_baseline=None, objective_type=None):
         def D_RULE(b, n):
             demand = float(model_data.df_scenarios.loc[('demand', n), s])
             
-            # Remove small demand to improve numerical conditioning
-            if demand < 1:
-                demand = 0
+#             # Remove small demand to improve numerical conditioning
+#             if demand < 1:
+#                 demand = 0
                         
             if use_pu:
                 return demand / model.BASE_POWER
@@ -1170,7 +1173,7 @@ def create_model(use_pu=None, variable_baseline=None, objective_type=None):
 
 # Setup solver.
 
-# In[6]:
+# In[ ]:
 
 
 # Setup solver
@@ -1182,13 +1185,17 @@ opt = SolverFactory(solver, solver_io=solver_io)
 
 # Check model runs
 
-# In[7]:
+# In[ ]:
 
 
-# Run BAU model (very high baseline)
-model_bau = create_model(use_pu=True, variable_baseline=False, objective_type='feasibility')
-model_bau.PHI = 1.5
-res_bau = opt.solve(model_bau, keepfiles=False, tee=True, warmstart=True)
+def check_bau_model():
+    """Run BAU model (very high baseline)"""
+    
+    model_bau = create_model(use_pu=True, variable_baseline=False, objective_type='feasibility')
+    model_bau.PHI = 1
+    res_bau = opt.solve(model_bau, keepfiles=False, tee=True, warmstart=True)
+    
+    return model_bau
 
 
 # Function to check if case should be processed.
@@ -1279,7 +1286,7 @@ def run_emissions_intensity_baseline_scenarios():
             with open(os.path.join(paths.output_dir, filename), 'wb') as f:
                 pickle.dump(fixed_baseline_results, f)
             
-run_emissions_intensity_baseline_scenarios()
+# run_emissions_intensity_baseline_scenarios()
 
 
 # Identify baseline that targets wholesale electricity price
@@ -1369,7 +1376,7 @@ def run_weighted_rrn_price_target_scenarios():
             with open(os.path.join(paths.output_dir, filename), 'wb') as f:
                 pickle.dump(price_target_results, f)
            
-run_weighted_rrn_price_target_scenarios()
+# run_weighted_rrn_price_target_scenarios()
 
 
 # Identify baseline that targets equilibrium permit price
@@ -1437,5 +1444,5 @@ def run_permit_price_target_scenarios():
             with open(os.path.join(paths.output_dir, filename), 'wb') as f:
                 pickle.dump(permit_price_target_results, f)
 
-run_permit_price_target_scenarios()
+# run_permit_price_target_scenarios()
 

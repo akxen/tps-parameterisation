@@ -386,10 +386,6 @@ def get_generator_srmc(generators):
     srmc_perturbation = pd.Series({i: random.uniform(0, 2) for i in generators.index.to_list()})
     srmc = generators['SRMC_2016-17'] + srmc_perturbation
 
-    # generators['SRMC_2016-17'] = generators['SRMC_2016-17'].map(lambda x: x + np.random.uniform(0, 2))
-    # a = generators['SRMC_2016-17'].map(lambda x: np.random.uniform(0, 2))
-    # print(a)
-
     # Extract SRMCs
     generator_index = get_generator_index(generators)
 

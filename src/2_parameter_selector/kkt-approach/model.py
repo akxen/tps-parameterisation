@@ -34,7 +34,6 @@ def define_sets(m, data):
     m.OMEGA_R = pyo.Set(initialize=data['S_REGIONS'])
 
     # Branches which constitute AC interconnectors in the network
-    # ac_interconnector_branch_node_incidence_matrix = m.get_ac_interconnector_branch_node_incidence_matrix()
     m.OMEGA_L = pyo.Set(initialize=data['S_INTERCONNECTORS'])
 
     # Set of integers used to select discretised baseline
@@ -47,91 +46,31 @@ def define_network_parameters(m, data):
     """Define network parameters"""
 
     # Max voltage angle difference between connected nodes
-    # m.THETA_DELTA = pyo.Param(initialize=float(pi / 2), mutable=True)
     m.P_NETWORK_VOLTAGE_ANGLE_MAX_DIFFERENCE = pyo.Param(initialize=float(math.pi / 2), mutable=True)
 
     # Branch susceptance matrix elements
     m.P_NETWORK_BRANCH_SUSCEPTANCE = pyo.Param(m.OMEGA_NM, initialize=data['P_NETWORK_BRANCH_SUSCEPTANCE'],
                                                mutable=True)
 
-    # def P_H_MAX_RULE(s, h):
-    #     forward_flow_limit = float(model_data.df_hvdc_links.loc[h, 'FORWARD_LIMIT_MW'])
-    #     if use_pu:
-    #         return forward_flow_limit / m.BASE_POWER
-    #     else:
-    #         return forward_flow_limit
-    #
-    # m.P_H_MAX = pyo.Param(m.OMEGA_H, rule=P_H_MAX_RULE)
+    # HVDC power flow limits
     m.P_NETWORK_HVDC_FORWARD_LIMIT = pyo.Param(m.OMEGA_H, initialize=data['P_NETWORK_HVDC_FORWARD_LIMIT'], mutable=True)
-
-    # def P_H_MIN_RULE(s, h):
-    #     reverse_flow_limit = float(model_data.df_hvdc_links.loc[h, 'REVERSE_LIMIT_MW'])
-    #     if use_pu:
-    #         return - reverse_flow_limit / m.BASE_POWER
-    #     else:
-    #         return - reverse_flow_limit
-    #
-    # m.P_H_MIN = pyo.Param(m.OMEGA_H, rule=P_H_MIN_RULE)
     m.P_NETWORK_HVDC_REVERSE_LIMIT = pyo.Param(m.OMEGA_H, initialize=data['P_NETWORK_HVDC_REVERSE_LIMIT'], mutable=True)
 
-    # # Reference nodes
-    # reference_nodes = model_data.get_reference_nodes()
-    #
-    # def S_R_RULE(model, n):
-    #     if n in reference_nodes:
-    #         return 1
-    #     else:
-    #         return 0
-    #
-    # m.S_R = pyo.Param(m.OMEGA_N, rule=S_R_RULE)
+    # Reference node indicator
     m.P_NETWORK_REFERENCE_NODE_INDICATOR = pyo.Param(m.OMEGA_N, initialize=data['P_NETWORK_REFERENCE_NODE_INDICATOR'])
 
-    # # HVDC incidence matrix
-    # hvdc_incidence_matrix = model_data.get_HVDC_incidence_matrix()
-    #
-    # def K_RULE(model, n, h):
-    #     return float(hvdc_incidence_matrix.loc[n, h])
-    #
-    # m.K = pyo.Param(m.OMEGA_N, m.OMEGA_H, rule=K_RULE)
+    # HVDC incidence matrix
     m.P_NETWORK_HVDC_INCIDENCE_MAT = pyo.Param(m.OMEGA_N, m.OMEGA_H, initialize=data['P_NETWORK_HVDC_INCIDENCE_MAT'])
 
-    # # AC interconnector incidence matrix
-    # def S_L_RULE(model, n, l):
-    #     return float(ac_interconnector_branch_node_incidence_matrix.loc[n, l])
-    #
-    # m.S_L = pyo.Param(m.OMEGA_N, m.OMEGA_L, rule=S_L_RULE)
+    # AC interconnector incidence matrix
     m.P_NETWORK_INTERCONNECTOR_INCIDENCE_MAT = pyo.Param(m.OMEGA_N, m.OMEGA_L,
                                                          initialize=data['P_NETWORK_INTERCONNECTOR_INCIDENCE_MAT'])
 
-    # # Aggregate AC interconnector flow limits
-    # ac_interconnector_flow_limits = model_data.get_ac_interconnector_flow_limits()
-    #
-    # def F_RULE(model, j):
-    #     power_flow_limit = float(ac_interconnector_flow_limits.loc[j, 'LIMIT'])
-    #     if use_pu:
-    #         return power_flow_limit / m.BASE_POWER
-    #     else:
-    #         return power_flow_limit
-    #
-    # m.F = pyo.Param(m.OMEGA_J, rule=F_RULE)
+    # Aggregate AC interconnector flow limits
     m.P_NETWORK_INTERCONNECTOR_LIMIT = pyo.Param(m.OMEGA_J, initialize=data['P_NETWORK_INTERCONNECTOR_LIMIT'],
                                                  mutable=True)
 
-    #
-    # def R_RULE(b, n):
-    #     """Fixed power injections"""
-    #     fixed_injection = float(
-    #         model_data.df_scenarios.loc[('intermittent', n), s] + model_data.df_scenarios.loc[('hydro', n), s])
-    #
-    #     # Remove very small fixed power injections to improve numerical conditioning
-    #     if fixed_injection < 1:
-    #         fixed_injection = 0
-    #
-    #     if use_pu:
-    #         return fixed_injection / model.BASE_POWER
-    #     else:
-    #         return fixed_injection
-    # b.R = Param(model.OMEGA_N, rule=R_RULE)
+    # Fixed nodal power injections
     m.P_NETWORK_FIXED_INJECTION = pyo.Param(m.OMEGA_S, m.OMEGA_N, initialize=data['P_NETWORK_FIXED_INJECTION'],
                                             mutable=True)
 
@@ -139,24 +78,6 @@ def define_network_parameters(m, data):
     m.P_NETWORK_DEMAND = pyo.Param(m.OMEGA_S, m.OMEGA_N, initialize=data['P_NETWORK_DEMAND'], mutable=True)
 
     # Proportion of total demand consumed in each region
-    # def ZETA_RULE(b, r):
-    #     # Region demand
-    #     region_demand = float((model_data.df_scenarios
-    #         .join(model_data.df_n[['NEM_REGION']], how='left')
-    #         .reset_index()
-    #         .groupby(['NEM_REGION', 'level'])
-    #         .sum()
-    #         .loc[(r, 'demand'), s]))
-    #
-    #     # Total demand
-    #     total_demand = float(model_data.df_scenarios.reset_index().groupby('level').sum().loc['demand', s])
-    #
-    #     # Proportion of demand consumed in region
-    #     demand_proportion = float(region_demand / total_demand)
-    #
-    #     return demand_proportion
-    #
-    # b.ZETA = Param(model.OMEGA_R, rule=ZETA_RULE)
     m.P_NETWORK_REGION_DEMAND_PROPORTION = pyo.Param(m.OMEGA_S, m.OMEGA_R,
                                                      initialize=data['P_NETWORK_REGION_DEMAND_PROPORTION'])
 
@@ -192,10 +113,7 @@ def define_network_parameters(m, data):
 def define_scenario_parameters(m, data):
     """Define scenario parameters"""
 
-    # # Scenario duration
-    # def RHO_RULE(b):
-    #     return float(model_data.df_scenarios.loc[('hours', 'duration'), s] / 8760)
-    # b.RHO = Param(rule=RHO_RULE)
+    # Relative scenario duration
     m.P_SCENARIO_DURATION = pyo.Param(m.OMEGA_S, initialize=data['P_SCENARIO_DURATION'])
 
     return m
@@ -204,44 +122,16 @@ def define_scenario_parameters(m, data):
 def define_generator_parameters(m, data):
     """Define generator parameters"""
 
-    # # Maximum generator output
-    # def P_MAX_RULE(model, g):
-    #     registered_capacity = float(model_data.df_g.loc[g, 'REG_CAP'])
-    #     if use_pu:
-    #         return registered_capacity / m.BASE_POWER
-    #     else:
-    #         return registered_capacity
-    #
-    # m.P_MAX = pyo.Param(m.OMEGA_G, rule=P_MAX_RULE)
+    # Maximum generator output
     m.P_GENERATOR_MAX_OUTPUT = pyo.Param(m.OMEGA_G, initialize=data['P_GENERATOR_MAX_OUTPUT'], mutable=True)
 
-    # # Minimum generator output (set to 0)
-    # def P_MIN_RULE(model, g):
-    #     minimum_output = 0
-    #     if use_pu:
-    #         return minimum_output / m.BASE_POWER
-    #     else:
-    #         return minimum_output
-    #
-    # m.P_MIN = pyo.Param(m.OMEGA_G, rule=P_MIN_RULE)
+    # Minimum generator output (set to 0)
     m.P_GENERATOR_MIN_OUTPUT = pyo.Param(m.OMEGA_G, initialize=data['P_GENERATOR_MIN_OUTPUT'])
 
-    # # Generator short-run marginal costs
-    # def C_RULE(model, g):
-    #     marginal_cost = float(model_data.df_g.loc[g, 'SRMC_2016-17'])
-    #     if use_pu:
-    #         return marginal_cost / m.BASE_POWER
-    #     else:
-    #         return marginal_cost
-    #
-    # m.C = pyo.Param(m.OMEGA_G, rule=C_RULE)
+    # Generator short-run marginal costs
     m.P_GENERATOR_SRMC = pyo.Param(m.OMEGA_G, initialize=data['P_GENERATOR_SRMC'], mutable=True)
 
-    # # Generator emissions intensities
-    # def E_RULE(model, g):
-    #     return float(model_data.df_g.loc[g, 'EMISSIONS'])
-    #
-    # m.E = pyo.Param(m.OMEGA_G, rule=E_RULE)
+    # Generator emissions intensities
     m.P_GENERATOR_EMISSIONS_INTENSITY = pyo.Param(m.OMEGA_G, initialize=data['P_GENERATOR_EMISSIONS_INTENSITY'])
 
     # Node to which generator is assigned
@@ -273,45 +163,15 @@ def define_big_m_parameters(m):
         return m.P_GENERATOR_MAX_OUTPUT[g] - m.P_GENERATOR_MIN_OUTPUT[g]
 
     m.P_M_11 = pyo.Param(m.OMEGA_G, rule=m_11_rule, mutable=True)
-
-    # def M_12_RULE(model, g):
-    #     bound = 1e3
-    #     if use_pu:
-    #         return bound / m.BASE_POWER
-    #     else:
-    #         return bound
-    #
     m.P_M_12 = pyo.Param(m.OMEGA_G, initialize=1e3, mutable=True)
 
     def m_21_rule(m, g):
         return m.P_GENERATOR_MAX_OUTPUT[g] - m.P_GENERATOR_MIN_OUTPUT[g]
 
     m.P_M_21 = pyo.Param(m.OMEGA_G, rule=m_21_rule, mutable=True)
-
-    # def M_22_RULE(model, g):
-    #     bound = 1e3
-    #     if use_pu:
-    #         return bound / m.BASE_POWER
-    #     else:
-    #         return bound
-    #
-    # m.M_22 = pyo.Param(m.OMEGA_G, rule=M_22_RULE)
     m.P_M_22 = pyo.Param(m.OMEGA_G, initialize=1e3, mutable=True)
 
-    # def M_31_RULE(model, n, m):
-    #     return float(pi)
-    #
-    # m.M_31 = pyo.Param(m.OMEGA_NM, rule=M_31_RULE)
     m.P_M_31 = pyo.Param(m.OMEGA_NM, initialize=float(math.pi), mutable=True)
-
-    # def M_32_RULE(model, n, m):
-    #     bound = 1e3
-    #     if use_pu:
-    #         return bound / m.BASE_POWER
-    #     else:
-    #         return bound
-    #
-    # m.M_32 = pyo.Param(m.OMEGA_NM, rule=M_32_RULE)
     m.P_M_32 = pyo.Param(m.OMEGA_NM, initialize=1e3, mutable=True)
 
     def m_41_rule(m, j):
@@ -323,65 +183,22 @@ def define_big_m_parameters(m):
             raise (Exception('REVERSE / FORWARD not in index name'))
         return m.P_NETWORK_INTERCONNECTOR_LIMIT[j] + m.P_NETWORK_INTERCONNECTOR_LIMIT[new_index]
 
-    # m.M_41 = pyo.Param(m.OMEGA_J, rule=M_41_RULE)
     m.P_M_41 = pyo.Param(m.OMEGA_J, rule=m_41_rule, mutable=True)
-
-    # def M_42_RULE(model, j):
-    #     bound = 1e3
-    #     if use_pu:
-    #         return bound / m.BASE_POWER
-    #     else:
-    #         return bound
-    #
-    # m.M_42 = pyo.Param(m.OMEGA_J, rule=M_42_RULE)
     m.P_M_42 = pyo.Param(m.OMEGA_J, initialize=1e3, mutable=True)
 
     def m_51_rule(m, h):
         return m.P_NETWORK_HVDC_FORWARD_LIMIT[h] - m.P_NETWORK_HVDC_REVERSE_LIMIT[h]
 
-    # m.M_51 = pyo.Param(m.OMEGA_H, rule=M_51_RULE)
     m.P_M_51 = pyo.Param(m.OMEGA_H, rule=m_51_rule, mutable=True)
-
-    # def M_52_RULE(model, h):
-    #     bound = 1e3
-    #     if use_pu:
-    #         return bound / m.BASE_POWER
-    #     else:
-    #         return bound
-    #
-    # m.M_52 = pyo.Param(m.OMEGA_H, rule=M_52_RULE)
     m.P_M_52 = pyo.Param(m.OMEGA_H, initialize=1e3, mutable=True)
 
     def m_61_rule(m, h):
         return m.P_NETWORK_HVDC_FORWARD_LIMIT[h] - m.P_NETWORK_HVDC_REVERSE_LIMIT[h]
 
     m.P_M_61 = pyo.Param(m.OMEGA_H, rule=m_61_rule, mutable=True)
-
-    # def M_62_RULE(model, h):
-    #     bound = 1e3
-    #     if use_pu:
-    #         return bound / m.BASE_POWER
-    #     else:
-    #         return bound
-    #
-    # m.M_62 = pyo.Param(m.OMEGA_H, rule=M_62_RULE)
     m.P_M_62 = pyo.Param(m.OMEGA_H, initialize=1e3, mutable=True)
 
-    # def M_71_RULE(model):
-    #     bound = 1e4
-    #     if use_pu:
-    #         return 1e4 / m.BASE_POWER
-    #     else:
-    #         return bound
-    #
-    # m.M_71 = pyo.Param(rule=M_71_RULE)
     m.P_M_71 = pyo.Param(initialize=1e4, mutable=True)
-
-    # def M_72_RULE(model):
-    #     bound = 1e4
-    #     return bound / m.BASE_POWER if use_pu else bound
-    #
-    # m.M_72 = pyo.Param(rule=M_72_RULE)
     m.P_M_72 = pyo.Param(rule=1e4, mutable=True)
 
     return m
@@ -409,13 +226,7 @@ def define_binary_expansion_parameters(m, data):
 
     m.P_BIN_EXP_TWO_POW_U = pyo.Param(m.OMEGA_U, rule=two_pow_u_rule)
 
-    # def L_1_RULE(model):
-    #     bound = 1e3
-    #     if use_pu:
-    #         return bound / model.BASE_POWER
-    #     else:
-    #         return bound
-    # Big-M parameter used used to make z_1=0 when PSI=0, and z_1=tau when PSI=1
+    # Big-M parameter used used to ensure Z_1=0 when PSI=0, and Z_1=V_DUAL_PERMIT_MARKET when PSI=1
     m.P_BIN_EXP_L_1 = pyo.Param(initialize=1e3)
 
     def l_2_rule(m, g):
@@ -690,14 +501,6 @@ def define_first_order_condition_constraints(m):
 
     m.C_FOC_1_LINEARISED = pyo.Constraint(m.OMEGA_S, m.OMEGA_G, rule=foc_1_linearised_rule)
 
-    # # Activate appropriate constraint depending on whether baseline is fixed or variable
-    # if variable_baseline:
-    #     # Activate if variable
-    #     b.FOC_1_LIN = Constraint(model.OMEGA_G, rule=FOC_1_LIN_RULE)
-    # else:
-    #     # Activate if fixed
-    #     b.FOC_1 = Constraint(model.OMEGA_G, rule=FOC_1_RULE)
-    #
     def foc_2_rule(m, s, n):
         """Constraint relating to voltage angles"""
 
@@ -1246,7 +1049,7 @@ if __name__ == '__main__':
 
     model_options = {
         'parameters': {
-            'P_BINARY_EXPANSION_LARGEST_INTEGER': 3,
+            'P_BINARY_EXPANSION_LARGEST_INTEGER': 10,
             'P_POLICY_FIXED_BASELINE': 1.2,
             'P_POLICY_PERMIT_PRICE_TARGET': 30,
             'P_POLICY_WEIGHTED_RRN_PRICE_TARGET': 20,
@@ -1261,13 +1064,3 @@ if __name__ == '__main__':
     model = construct_model(case_data, use_pu=True)
     model = configure_model(model, model_options)
     model = solve_model(model)
-
-    # print('C', model.P_GENERATOR_SRMC['AGLHAL'].value)
-    # print('E', model.P_GENERATOR_EMISSIONS_INTENSITY['AGLHAL'])
-    # print('PHI', model.P_POLICY_FIXED_BASELINE.value)
-    # print('tau', model.V_DUAL_PERMIT_MARKET.value)
-    # print('MU_1', model.V_DUAL_MU_1[1, 'AGLHAL'].value)
-    # print('MU_2', model.V_DUAL_MU_2[1, 'AGLHAL'].value)
-    # print('lamb', model.V_DUAL_LAMBDA[1, model.P_GENERATOR_NODE['AGLHAL']].value)
-    #
-    # print(model.C_FOC_2[1, 1].expr)

@@ -13,6 +13,7 @@ import os
 import re
 import time
 import pickle
+import random
 import itertools
 from math import pi
 
@@ -79,9 +80,11 @@ class RawData(object):
         # ----------       
         # Generating unit information
         self.df_g = pd.read_csv(os.path.join(self.data_dir, 'egrimod-nem-dataset-v1.3', 'akxen-egrimod-nem-dataset-4806603', 'generators', 'generators.csv'), index_col='DUID', dtype={'NODE': int})
-        self.df_g['SRMC_2016-17'] = self.df_g['SRMC_2016-17'].map(lambda x: x + np.random.uniform(0, 2))
+#         self.df_g['SRMC_2016-17'] = self.df_g['SRMC_2016-17'].map(lambda x: x + np.random.uniform(0, 2))
+        random.seed(10)
+        df_srmc_perturbation = pd.Series({i: random.uniform(0, 2) for i in self.df_g.index.to_list()})
+        self.df_g['SRMC_2016-17'] = self.df_g['SRMC_2016-17'] + df_srmc_perturbation
         
-               
         # Operating scenarios
         # -------------------
         with open(os.path.join(paths.scenarios_dir, 'output', '2_scenarios.pickle'), 'rb') as f:
@@ -738,9 +741,9 @@ def create_model(use_pu=None, variable_baseline=None, objective_type=None):
         def D_RULE(b, n):
             demand = float(model_data.df_scenarios.loc[('demand', n), s])
             
-            # Remove small demand to improve numerical conditioning
-            if demand < 1:
-                demand = 0
+#             # Remove small demand to improve numerical conditioning
+#             if demand < 1:
+#                 demand = 0
                         
             if use_pu:
                 return demand / model.BASE_POWER
@@ -751,15 +754,15 @@ def create_model(use_pu=None, variable_baseline=None, objective_type=None):
         # Proportion of total demand consumed in each region
         def ZETA_RULE(b, r):            
             # Region demand
-            region_demand = float((model_data.df_scenarios
+            region_demand = float((model_data.df_scenarios.rename_axis(['level_1', 'NODE_ID'])
                                    .join(model_data.df_n[['NEM_REGION']], how='left')
                                    .reset_index()
-                                   .groupby(['NEM_REGION','level'])
+                                   .groupby(['NEM_REGION','level_1'])
                                    .sum()
                                    .loc[(r, 'demand'), s]))
 
             # Total demand
-            total_demand = float(model_data.df_scenarios.reset_index().groupby('level').sum().loc['demand', s])
+            total_demand = float(model_data.df_scenarios.reset_index().groupby('level_1').sum().loc['demand', s])
             
             # Proportion of demand consumed in region
             demand_proportion = float(region_demand / total_demand)
@@ -1180,6 +1183,21 @@ solver_io = 'mps'
 opt = SolverFactory(solver, solver_io=solver_io)
 
 
+# Check model runs
+
+# In[ ]:
+
+
+def check_bau_model():
+    """Run BAU model (very high baseline)"""
+    
+    model_bau = create_model(use_pu=True, variable_baseline=False, objective_type='feasibility')
+    model_bau.PHI = 1
+    res_bau = opt.solve(model_bau, keepfiles=False, tee=True, warmstart=True)
+    
+    return model_bau
+
+
 # Function to check if case should be processed.
 
 # In[ ]:
@@ -1268,7 +1286,7 @@ def run_emissions_intensity_baseline_scenarios():
             with open(os.path.join(paths.output_dir, filename), 'wb') as f:
                 pickle.dump(fixed_baseline_results, f)
             
-run_emissions_intensity_baseline_scenarios()
+# run_emissions_intensity_baseline_scenarios()
 
 
 # Identify baseline that targets wholesale electricity price
@@ -1358,7 +1376,7 @@ def run_weighted_rrn_price_target_scenarios():
             with open(os.path.join(paths.output_dir, filename), 'wb') as f:
                 pickle.dump(price_target_results, f)
            
-run_weighted_rrn_price_target_scenarios()
+# run_weighted_rrn_price_target_scenarios()
 
 
 # Identify baseline that targets equilibrium permit price
@@ -1426,5 +1444,5 @@ def run_permit_price_target_scenarios():
             with open(os.path.join(paths.output_dir, filename), 'wb') as f:
                 pickle.dump(permit_price_target_results, f)
 
-run_permit_price_target_scenarios()
+# run_permit_price_target_scenarios()
 

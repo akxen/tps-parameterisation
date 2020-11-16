@@ -1,7 +1,6 @@
 """Parameter selector variables"""
 
 import os
-import time
 import math
 
 import pyomo.environ as pyo
@@ -347,6 +346,7 @@ def define_complementarity_constraint_variables(m):
 def define_dummy_variables(m):
     """Dummy variables used as a placeholder in objective function"""
 
+    # Dummy variable used in object feasibility mode objective
     m.V_DUMMY = pyo.Var(bounds=(0, 1))
 
     # Dummy variables used to target given permit price
@@ -541,6 +541,8 @@ def define_network_constraint(m):
     """Define network constraints"""
 
     def reference_node_voltage_angle_rule(m, s, n):
+        """Fix reference node voltage angles to 0"""
+
         if m.P_NETWORK_REFERENCE_NODE_INDICATOR[n] == 1:
             return m.V_PRIMAL_VOLTAGE_ANGLE[s, n] == 0
         else:
@@ -1073,6 +1075,8 @@ def get_solution(m, params):
         'P_POLICY_PERMIT_PRICE_TARGET': m.P_POLICY_PERMIT_PRICE_TARGET.value,
         'P_POLICY_WEIGHTED_RRN_PRICE_TARGET': m.P_POLICY_PERMIT_PRICE_TARGET.value,
         'P_SCENARIO_DURATION': {k: extract_value(v) for k, v in m.P_SCENARIO_DURATION.items()},
+        'P_GENERATOR_SRMC': {k: extract_value(v) for k, v in m.P_GENERATOR_SRMC.items()},
+        'P_GENERATOR_EMISSIONS_INTENSITY': {k: extract_value(v) for k, v in m.P_GENERATOR_EMISSIONS_INTENSITY.items()},
     }
 
     # Extract selected variables and expressions
@@ -1105,7 +1109,7 @@ def get_solution(m, params):
 
     # Combine into single dictionary
     output = {
-        'parameters': params,
+        'options': params,
         'solution': solution
     }
 

@@ -133,7 +133,7 @@ def get_binary_expansion_integer_index(options):
     """Set of integers used when implementing binary expansion"""
 
     # Largest integer in set
-    largest_integer = options['parameters']['P_BINARY_EXPANSION_LARGEST_INTEGER']
+    largest_integer = options['parameters'].get('P_BINARY_EXPANSION_LARGEST_INTEGER', -1)
 
     return range(0, largest_integer + 1)
 
@@ -430,7 +430,7 @@ def get_case_data(data_dir, scenarios_dir, tmp_dir, options, use_cache):
         'P_NETWORK_HVDC_INCIDENCE_MAT': get_hvdc_incidence_matrix(nodes, hvdc_edges),
         'P_NETWORK_INTERCONNECTOR_INCIDENCE_MAT': get_interconnector_incidence_matrix(interconnectors, nodes),
         'P_NETWORK_INTERCONNECTOR_LIMIT': get_network_interconnector_flow_limit(flow_limits),
-        'P_BINARY_EXPANSION_LARGEST_INTEGER': options['parameters']['P_BINARY_EXPANSION_LARGEST_INTEGER'],
+        'P_BINARY_EXPANSION_LARGEST_INTEGER': options['parameters'].get('P_BINARY_EXPANSION_LARGEST_INTEGER', -1),
         'P_NETWORK_FIXED_INJECTION': get_network_fixed_injection(scenarios),
         'P_NETWORK_DEMAND': get_network_demand(scenarios),
         'P_NETWORK_REGION_DEMAND_PROPORTION': get_network_region_demand_proportion(scenarios, nodes),
@@ -442,9 +442,9 @@ def get_case_data(data_dir, scenarios_dir, tmp_dir, options, use_cache):
         'P_NETWORK_HVDC_FROM_NODE': get_hvdc_from_node(hvdc_edges),
         'P_NETWORK_HVDC_TO_NODE': get_hvdc_to_node(hvdc_edges),
         'P_NETWORK_NODE_GENERATOR_MAP': get_node_generator_map(generators, nodes),
-        'P_POLICY_FIXED_BASELINE': options['parameters']['P_POLICY_FIXED_BASELINE'],
-        'P_POLICY_PERMIT_PRICE_TARGET': options['parameters']['P_POLICY_PERMIT_PRICE_TARGET'],
-        'P_POLICY_WEIGHTED_RRN_PRICE_TARGET': options['parameters']['P_POLICY_WEIGHTED_RRN_PRICE_TARGET'],
+        'P_POLICY_FIXED_BASELINE': options['parameters'].get('P_POLICY_FIXED_BASELINE', -1),
+        'P_POLICY_PERMIT_PRICE_TARGET': options['parameters'].get('P_POLICY_PERMIT_PRICE_TARGET', -1),
+        'P_POLICY_WEIGHTED_RRN_PRICE_TARGET': options['parameters'].get('P_POLICY_WEIGHTED_RRN_PRICE_TARGET', -1),
         'P_REGION_RRN_NODE_MAP': get_region_rrn_node_map(nodes),
     }
 

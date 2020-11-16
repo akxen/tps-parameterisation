@@ -1,57 +1,92 @@
-name: opti
+name: tps-parameterisation
 channels:
+  - conda-forge
   - defaults
 dependencies:
-  - ca-certificates=2018.03.07=0
-  - certifi=2018.8.24=py36_1
-  - libedit=3.1.20170329=h6b74fdf_2
-  - libffi=3.2.1=hd88cf55_4
-  - libgcc-ng=8.2.0=hdf63c60_1
-  - libstdcxx-ng=8.2.0=hdf63c60_1
-  - ncurses=6.1=hf484d3e_0
-  - openssl=1.0.2p=h14c3975_0
-  - pip=10.0.1=py36_0
-  - python=3.6.6=hc3d631a_0
-  - readline=7.0=h7b6447c_5
-  - setuptools=40.2.0=py36_0
-  - sqlite=3.24.0=h84994c4_0
-  - tk=8.6.8=hbc83047_0
-  - wheel=0.31.1=py36_0
-  - xz=5.2.4=h14c3975_4
-  - zlib=1.2.11=ha838bed_2
+  - _libgcc_mutex=0.1=conda_forge
+  - _openmp_mutex=4.5=1_gnu
+  - ca-certificates=2020.11.8=ha878542_0
+  - certifi=2020.11.8=py38h578d9bd_0
+  - ld_impl_linux-64=2.35=h769bd43_9
+  - libffi=3.2.1=he1b5a44_1007
+  - libgcc-ng=9.3.0=h5dbcf3e_17
+  - libgomp=9.3.0=h5dbcf3e_17
+  - libstdcxx-ng=9.3.0=h2ae2ef3_17
+  - ncurses=6.2=h58526e2_3
+  - openssl=1.1.1h=h516909a_0
+  - pip=20.2.4=py_0
+  - python=3.8.6=h852b56e_0_cpython
+  - python_abi=3.8=1_cp38
+  - readline=8.0=he28a2e2_2
+  - setuptools=49.6.0=py38h924ce5b_2
+  - sqlite=3.33.0=h4cf870e_1
+  - tk=8.6.10=hed695b0_1
+  - wheel=0.35.1=pyh9f0ad1d_0
+  - xz=5.2.5=h516909a_1
+  - zlib=1.2.11=h516909a_1010
   - pip:
-    - appdirs==1.4.3
-    - backcall==0.1.0
+    - argon2-cffi==20.1.0
+    - async-generator==1.10
+    - attrs==20.3.0
+    - backcall==0.2.0
+    - bleach==3.2.1
+    - cffi==1.14.3
     - cycler==0.10.0
-    - decorator==4.3.0
-    - ipykernel==4.9.0
-    - ipython==6.5.0
+    - decorator==4.4.2
+    - defusedxml==0.6.0
+    - entrypoints==0.3
+    - ipykernel==5.3.4
+    - ipython==7.19.0
     - ipython-genutils==0.2.0
-    - jedi==0.12.1
-    - jupyter-client==5.2.3
-    - jupyter-core==4.4.0
-    - kiwisolver==1.0.1
-    - matplotlib==3.0.0
+    - ipywidgets==7.5.1
+    - jedi==0.17.2
+    - jinja2==2.11.2
+    - jsonschema==3.2.0
+    - jupyter==1.0.0
+    - jupyter-client==6.1.7
+    - jupyter-console==6.2.0
+    - jupyter-core==4.6.3
+    - jupyterlab-pygments==0.1.2
+    - kiwisolver==1.3.1
+    - markupsafe==1.1.1
+    - matplotlib==3.3.3
+    - mistune==0.8.4
+    - nbclient==0.5.1
+    - nbconvert==6.0.7
+    - nbformat==5.0.8
+    - nest-asyncio==1.4.3
     - nose==1.3.7
-    - numpy==1.15.2
-    - pandas==0.23.4
-    - parso==0.3.1
-    - pexpect==4.6.0
-    - pickleshare==0.7.4
+    - notebook==6.1.5
+    - numpy==1.19.4
+    - packaging==20.4
+    - pandas==1.1.4
+    - pandocfilters==1.4.3
+    - parso==0.7.1
+    - pexpect==4.8.0
+    - pickleshare==0.7.5
+    - pillow==8.0.1
     - ply==3.11
-    - prompt-toolkit==1.0.15
+    - prometheus-client==0.8.0
+    - prompt-toolkit==3.0.8
     - ptyprocess==0.6.0
-    - pygments==2.2.0
-    - pyomo==5.5.0
-    - pyparsing==2.2.1
-    - python-dateutil==2.7.3
-    - pytz==2018.5
-    - pyutilib==5.6.3
-    - pyzmq==17.1.2
-    - simplegeneric==0.8.1
-    - six==1.11.0
-    - tornado==5.1.1
-    - traitlets==4.3.2
-    - wcwidth==0.1.7
-prefix: /home/eee/anaconda3/envs/opti
-
+    - pycparser==2.20
+    - pygments==2.7.2
+    - pyomo==5.7.1
+    - pyparsing==2.4.7
+    - pyrsistent==0.17.3
+    - python-dateutil==2.8.1
+    - pytz==2020.4
+    - pyutilib==6.0.0
+    - pyzmq==19.0.2
+    - qtconsole==4.7.7
+    - qtpy==1.9.0
+    - send2trash==1.5.0
+    - six==1.15.0
+    - terminado==0.9.1
+    - testpath==0.4.4
+    - tornado==6.1
+    - traitlets==5.0.5
+    - wcwidth==0.2.5
+    - webencodings==0.5.1
+    - widgetsnbextension==3.5.1
+prefix: /home/compo/miniconda3/envs/tps-parameterisation

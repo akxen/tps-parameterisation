@@ -144,7 +144,7 @@ def get_admittance_matrix(nodes, ac_edges, tmp_dir, use_cache):
     if use_cache:
         try:
             return pd.read_pickle(os.path.join(tmp_dir, 'admittance_matrix.pickle'))
-        except FileNotFoundError:
+        except (FileNotFoundError, PermissionError):
             pass
 
     # Initialise DataFrame

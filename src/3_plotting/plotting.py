@@ -83,6 +83,7 @@ def wholesale_price_vs_baseline(ax, feasibility_results, weighted_rrn_price_targ
     # Format ticks
     ax.minorticks_on()
     ax.yaxis.set_major_locator(matplotlib.ticker.MultipleLocator(0.2))
+    ax.xaxis.set_major_locator(matplotlib.ticker.MultipleLocator(0.05))
     ax.tick_params(axis='x', labelsize=labelsize)
     ax.tick_params(axis='y', labelsize=labelsize)
 
@@ -302,8 +303,8 @@ def plot_weighted_rrn_price_vs_average_price(feasibility_results, output_dir):
     ax.xaxis.set_minor_locator(matplotlib.ticker.MultipleLocator(0.05))
 
     # Set figure size
-    fig.set_size_inches(2.9, 2.9 / 1.7)
-    fig.subplots_adjust(left=0.22, bottom=0.23, right=0.97, top=0.97)
+    fig.set_size_inches(3.35, 3.35 / 1.7)
+    fig.subplots_adjust(left=0.175, bottom=0.2, right=0.97, top=0.97)
 
     fig.savefig(os.path.join(output_dir, 'figures', 'manuscript', 'weighted_rrn_prices.png'), dpi=300)
     fig.savefig(os.path.join(output_dir, 'figures', 'manuscript', 'weighted_rrn_prices.pdf'))
@@ -322,8 +323,8 @@ def plot_price_targeting_results(feasibility_results, weighted_rrn_price_target_
     ax4 = permit_price_vs_baseline_error(ax4, permit_price_target_res)
 
     # Set figure size
-    fig.set_size_inches(6.45, 6.45 / 1.4)
-    fig.subplots_adjust(left=0.1, bottom=0.125, right=0.98, top=0.985, wspace=0.25, hspace=0.33)
+    fig.set_size_inches(6.89, 6.89 / 1.4)
+    fig.subplots_adjust(left=0.09, bottom=0.11, right=0.98, top=0.985, wspace=0.25, hspace=0.33)
 
     fig.savefig(os.path.join(output_dir, 'figures', 'manuscript', 'price_targets.png'), dpi=300)
     fig.savefig(os.path.join(output_dir, 'figures', 'manuscript', 'price_targets.pdf'))
@@ -518,8 +519,8 @@ def plot_srmc_output_comparison(feasibility_results, data_dir, output_dir):
     generator_output_comparison(ax2, feasibility_results)
 
     # Format figure size
-    fig.set_size_inches(6.45, 6.45 / 2.4)
-    fig.subplots_adjust(left=0.07, bottom=0.2, right=0.99, top=0.95, wspace=0.22)
+    fig.set_size_inches(6.89, 6.89 / 2.4)
+    fig.subplots_adjust(left=0.06, bottom=0.19, right=0.99, top=0.95, wspace=0.22)
 
     fig.savefig(os.path.join(output_dir, 'figures', 'manuscript', f'srmc_output_comparison.png'), dpi=300)
     fig.savefig(os.path.join(output_dir, 'figures', 'manuscript', f'srmc_output_comparison.pdf'))

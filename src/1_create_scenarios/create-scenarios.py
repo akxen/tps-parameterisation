@@ -35,8 +35,9 @@ idx = pd.IndexSlice
 # Contains network information and generator parameters
 data_dir = os.path.join(os.path.curdir, os.path.pardir, os.path.pardir, 'data')
 
-# MMSDM historic demand and dispatch signals
-# archive_dir = r'D:\nemweb\Reports\Data_Archive\MMSDM\zipped'
+# Note: archive_dir should point to the directory containing monthly MMSDM zip files 
+# obtained from nemweb: see https://visualisations.aemo.com.au/aemo/nemweb/index.html#mms-data-model
+# you must download these files yourself as they are not included in this repository
 archive_dir = '/media/compo/My Passport/nemweb/Reports/Data_Archive/MMSDM/zipped'
 
 # Location for output files

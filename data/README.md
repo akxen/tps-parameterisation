@@ -7,8 +7,8 @@ Network and generator technical parameters are obtained from:
 
 The assays performed to construct these datasets are described in [1].
 
-## Historic generator dispatch and demand signals
-Historic generator dispatch and demand information for 2017 is obtained from the Australian Energy Market Operator's Market Management System Data Model (MMSDM) database [1]. Data for each month of 2017 were extracted from the following MMSDM tables:
+## Historical generator dispatch and demand signals
+Historical generator dispatch and demand information for 2017 is obtained from the Australian Energy Market Operator's Market Management System Data Model (MMSDM) database [1]. Data for each month of 2017 were extracted from the following MMSDM tables:
 
 | MMSDM Table Name | Description |
 | ----------- | ----------- |

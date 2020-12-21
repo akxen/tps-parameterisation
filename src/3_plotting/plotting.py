@@ -68,8 +68,8 @@ def wholesale_price_vs_baseline(ax, feasibility_results, weighted_rrn_price_targ
         ax.plot([0.9, 1.1], [i, i], linestyle=':', linewidth=0.5, color='k')
 
     # Add label to horizontal lines specifying average price target
-    fontsize = 8
-    labelsize = 7
+    fontsize = 7
+    labelsize = 6
     ax.text(1.075, 1.405, '$\hat{\lambda} = 1.4$', fontsize=5)
     ax.text(1.075, 1.305, '$\hat{\lambda} = 1.3$', fontsize=5)
     ax.text(1.075, 1.205, '$\hat{\lambda} = 1.2$', fontsize=5)
@@ -117,8 +117,8 @@ def wholesale_price_vs_baseline_error(ax, weighted_rrn_price_target_results):
     axes_max = max(max(x_1), max(y_1))
     ax.plot([axes_min, axes_max], [axes_min, axes_max], linestyle=':', linewidth=0.8, color='black', alpha=0.8)
 
-    fontsize = 8
-    labelsize = 7
+    fontsize = 7
+    labelsize = 6
     ax.set_xlabel('Target price relative to BAU\n(b)', fontsize=fontsize)
     ax.set_ylabel('Average price\nrelative to BAU', fontsize=fontsize)
 
@@ -186,8 +186,8 @@ def permit_price_vs_baseline(ax, feasibility_results, permit_price_target_result
     ax.set_ylim([-5, 130])
 
     # Set axes labels
-    fontsize = 8
-    labelsize = 7
+    fontsize = 7
+    labelsize = 6
     ax.set_ylabel('Permit price \n (\$/tCO$_{2}$)', fontsize=fontsize)
     ax.set_xlabel('Emissions intensity baseline (tCO$_{2}$/MWh)\n(c)', fontsize=fontsize)
 
@@ -229,7 +229,7 @@ def permit_price_vs_baseline_error(ax, permit_price_target_results):
     ax.plot([0, 110], [0, 110], linestyle=':', linewidth=0.8, color='black', alpha=0.8)
 
     # Format labels
-    fontsize = 8
+    fontsize = 7
     ax.set_ylabel('Permit price\n(\$/tCO$_{2}$)', fontsize=fontsize, labelpad=0.5)
     ax.set_xlabel('Target permit price (\$/tCO$_{2}$)\n(d)', fontsize=fontsize)
 
@@ -238,7 +238,7 @@ def permit_price_vs_baseline_error(ax, permit_price_target_results):
     ax.set_xlim([-5, 120])
 
     # Format ticks
-    labelsize = 7
+    labelsize = 6
     ax.minorticks_on()
     ax.tick_params(axis='x', labelsize=labelsize)
     ax.tick_params(axis='y', labelsize=labelsize)
@@ -283,12 +283,12 @@ def plot_weighted_rrn_price_vs_average_price(feasibility_results, output_dir):
     ax.plot([axes_min, axes_max], [axes_min, axes_max], linestyle=':', color='k', alpha=0.5)
 
     # Axes labels
-    fontsize = 8
+    fontsize = 7
     ax.set_xlabel('Average price relative to BAU', fontsize=fontsize)
     ax.set_ylabel('Weighted RRN price\nrelative to BAU', fontsize=fontsize)
 
     # Format ticks
-    labelsize = 7
+    labelsize = 6
     ax.tick_params(axis='x', labelsize=labelsize)
     ax.tick_params(axis='y', labelsize=labelsize)
 
@@ -303,8 +303,8 @@ def plot_weighted_rrn_price_vs_average_price(feasibility_results, output_dir):
     ax.xaxis.set_minor_locator(matplotlib.ticker.MultipleLocator(0.05))
 
     # Set figure size
-    fig.set_size_inches(3.35, 3.35 / 1.7)
-    fig.subplots_adjust(left=0.175, bottom=0.2, right=0.97, top=0.97)
+    fig.set_size_inches(3.35, 1.57)
+    fig.subplots_adjust(left=0.155, bottom=0.22, right=0.97, top=0.97)
 
     fig.savefig(os.path.join(output_dir, 'figures', 'manuscript', 'weighted_rrn_prices.png'), dpi=300)
     fig.savefig(os.path.join(output_dir, 'figures', 'manuscript', 'weighted_rrn_prices.pdf'))
@@ -323,8 +323,8 @@ def plot_price_targeting_results(feasibility_results, weighted_rrn_price_target_
     ax4 = permit_price_vs_baseline_error(ax4, permit_price_target_res)
 
     # Set figure size
-    fig.set_size_inches(6.89, 6.89 / 1.4)
-    fig.subplots_adjust(left=0.09, bottom=0.11, right=0.98, top=0.985, wspace=0.25, hspace=0.33)
+    fig.set_size_inches(6.89, 3.62)
+    fig.subplots_adjust(left=0.08, bottom=0.13, right=0.98, top=0.985, wspace=0.2, hspace=0.37)
 
     fig.savefig(os.path.join(output_dir, 'figures', 'manuscript', 'price_targets.png'), dpi=300)
     fig.savefig(os.path.join(output_dir, 'figures', 'manuscript', 'price_targets.pdf'))
